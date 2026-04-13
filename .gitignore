@@ -1,0 +1,28 @@
+# Environment variables - never commit credentials
+.env
+.env.local
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.cursor/
+.vscode/
