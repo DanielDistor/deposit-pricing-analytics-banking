@@ -18,16 +18,15 @@
 
 ## Reflection
 
-This posting is directly relevant to ISBA-4715 because the role centers on building and
-maintaining analytics pipelines for deposit pricing decisions — exactly the kind of
-end-to-end data work covered in this course. The role explicitly requires SQL, Python, and
-data visualization (Tableau), which maps to the core coursework skills of writing SQL
-queries, building dbt transformation models, and surfacing insights through dashboards. To
-prove I can do this job, I would build a pipeline that ingests Federal Reserve rate data via
-the FRED API and scrapes deposit rate offerings from major banks, transforms the data
-through dbt staging and mart layers in Snowflake, and visualizes pricing trends in a
-Streamlit dashboard that answers how banks responded to the 2022–2023 Fed rate hike cycle.
-This project would also transfer to similar roles such as a BI Analyst at a regional bank,
-a Data Analyst at a fintech focused on savings products, or a Reporting Analyst at an asset
-management firm — all of which require the same combination of SQL, pipelines, and
-financial data storytelling.
+This posting is relevant to ISBA-4715 because the role focuses on building analytics
+pipelines around deposit pricing decisions, which is exactly the kind of end-to-end data
+work this course covers. The required skills listed in the posting include SQL, Python, and
+Tableau, all of which align with coursework in SQL querying, dbt transformation modeling,
+and dashboard development. To demonstrate these skills, I would build a pipeline that pulls
+Federal Reserve rate data from the FRED API, scrapes deposit rates from major banks,
+transforms the data through dbt staging and mart layers in Snowflake, and visualizes the
+results in a Streamlit dashboard showing how banks responded to the 2022 to 2023 Fed rate
+hike cycle. This project would also transfer well to roles like a BI Analyst at a regional
+bank, a Data Analyst at a fintech company focused on savings products, or a Reporting
+Analyst at an asset management firm, since all three require the same core combination of
+SQL, data pipelines, and financial analytics.
