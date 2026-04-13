@@ -12,7 +12,7 @@
 - **Company:** JPMorganChase
 - **Location:** New York, NY
 - **Link:** https://www.linkedin.com/jobs/view/4370149986/
-- **SQL requirement (quote from posting):** "Strong proficiency with SQL, Python, SAS, Tableau"
+- **SQL requirement (quote from posting):** "Data & Quantitative analysis – Strong proficiency with SQL, Python, SAS, Tableau, Alteryx, and MS Office suite including Excel, PowerPoint"
 
 ---
 
