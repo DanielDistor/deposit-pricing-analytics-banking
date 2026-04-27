@@ -6,7 +6,7 @@ from firecrawl import FirecrawlApp
 
 load_dotenv()
 
-OUTPUT_DIR = Path("knowledge/raw")
+OUTPUT_DIR = Path(__file__).parent.parent / "knowledge" / "raw"
 
 TARGETS = [
     {
@@ -27,8 +27,12 @@ def scrape_page(app: FirecrawlApp, url: str) -> str:
     else:
         result = app.scrape_url(url, formats=["markdown"])
     if isinstance(result, dict):
-        return result.get("markdown") or result.get("content", "")
-    return result.markdown
+        markdown = result.get("markdown") or result.get("content", "")
+    else:
+        markdown = result.markdown
+    if not markdown:
+        raise ValueError(f"No markdown content returned for {url}")
+    return markdown
 
 
 def main():
