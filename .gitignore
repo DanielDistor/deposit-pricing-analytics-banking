@@ -26,6 +26,3 @@ Thumbs.db
 # IDE
 .cursor/
 .vscode/
-
-# Scraped data outputs (data files, not code)
-knowledge/raw/*.md
