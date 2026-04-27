@@ -342,7 +342,7 @@ Both should exit cleanly with no errors.
 - [ ] **Step 2: Confirm no credentials in git history**
 
 ```bash
-git log --all --full-history -p | grep -E "418d0f|Snowflake0456|fc-26dba|DGODISTOR" | head -5
+git log --all --full-history -p | grep -E "FRED_API_KEY=|SNOWFLAKE_PASSWORD=|FIRECRAWL_API_KEY=" | grep -v "=<your_" | head -5
 ```
 
 Expected: No output. If credentials appear, stop and ask for help before pushing.
