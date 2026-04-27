@@ -1,5 +1,4 @@
 import os
-import sys
 import requests
 from dotenv import load_dotenv
 import snowflake.connector
@@ -8,6 +7,7 @@ load_dotenv()
 
 FRED_API_KEY = os.getenv("FRED_API_KEY")
 SERIES = ["FEDFUNDS", "DFF", "TB3MS", "GS1", "GS2", "GS5", "GS10", "DPCREDIT"]
+OBSERVATION_START = "2000-01-01"
 
 
 def fetch_series(series_id: str) -> list[tuple]:
@@ -16,7 +16,7 @@ def fetch_series(series_id: str) -> list[tuple]:
         "series_id": series_id,
         "api_key": FRED_API_KEY,
         "file_type": "json",
-        "observation_start": "2000-01-01",
+        "observation_start": OBSERVATION_START,
     }
     r = requests.get(url, params=params, timeout=30)
     r.raise_for_status()
@@ -65,28 +65,28 @@ def main():
         role="ACCOUNTADMIN",
     )
     cur = conn.cursor()
+    try:
+        print("Setting up Snowflake objects...")
+        setup_snowflake(cur)
 
-    print("Setting up Snowflake objects...")
-    setup_snowflake(cur)
+        all_rows: list[tuple] = []
+        for series_id in SERIES:
+            print(f"  Fetching {series_id}...", end=" ", flush=True)
+            rows = fetch_series(series_id)
+            all_rows.extend(rows)
+            print(f"{len(rows)} observations")
 
-    all_rows: list[tuple] = []
-    for series_id in SERIES:
-        print(f"  Fetching {series_id}...", end=" ", flush=True)
-        rows = fetch_series(series_id)
-        all_rows.extend(rows)
-        print(f"{len(rows)} observations")
+        print(f"\nLoading {len(all_rows)} total rows to Snowflake...")
+        load_rows(cur, all_rows)
+        conn.commit()
 
-    print(f"\nLoading {len(all_rows)} total rows to Snowflake...")
-    load_rows(cur, all_rows)
-    conn.commit()
-
-    cur.execute("SELECT COUNT(*) FROM FRED_OBSERVATIONS")
-    count = cur.fetchone()[0]
-    print(f"Verified: {count} rows in DEPOSIT_ANALYTICS.RAW.FRED_OBSERVATIONS")
-
-    cur.close()
-    conn.close()
-    print("Done!")
+        cur.execute("SELECT COUNT(*) FROM FRED_OBSERVATIONS")
+        count = cur.fetchone()[0]
+        print(f"Verified: {count} rows in DEPOSIT_ANALYTICS.RAW.FRED_OBSERVATIONS")
+        print("Done!")
+    finally:
+        cur.close()
+        conn.close()
 
 
 if __name__ == "__main__":
