@@ -1,0 +1,21 @@
+name: 'deposit_pricing'
+version: '1.0.0'
+config-version: 2
+
+profile: 'deposit_pricing'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  deposit_pricing:
+    staging:
+      +materialized: view
+      +schema: staging
+    mart:
+      +materialized: table
+      +schema: mart

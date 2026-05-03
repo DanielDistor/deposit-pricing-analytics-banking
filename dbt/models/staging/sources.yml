@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: raw
+    database: DEPOSIT_ANALYTICS
+    schema: RAW
+    tables:
+      - name: fred_observations
+        columns:
+          - name: series_id
+            tests: [not_null]
+          - name: observation_date
+            tests: [not_null]
+          - name: value
+            tests: [not_null]
+      - name: bankrate_rates
+        columns:
+          - name: bank_name
+            tests: [not_null]
+          - name: apy_pct
+            tests: [not_null]

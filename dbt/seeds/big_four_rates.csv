@@ -1,0 +1,13 @@
+bank_name,product_type,term_months,apy_pct,scrape_date
+JPMorgan Chase,savings,,0.01,2026-04-26
+JPMorgan Chase,cd,12,4.00,2026-04-26
+JPMorgan Chase,cd,6,3.75,2026-04-26
+Bank of America,savings,,0.01,2026-04-26
+Bank of America,cd,12,4.00,2026-04-26
+Bank of America,cd,6,3.50,2026-04-26
+Wells Fargo,savings,,0.01,2026-04-26
+Wells Fargo,cd,12,4.01,2026-04-26
+Wells Fargo,cd,6,3.51,2026-04-26
+Citibank,savings,,0.04,2026-04-26
+Citibank,cd,12,4.00,2026-04-26
+Citibank,cd,6,3.75,2026-04-26
