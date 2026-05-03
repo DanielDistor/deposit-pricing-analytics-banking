@@ -58,9 +58,10 @@ APY_RE = re.compile(r'(\d+\.\d+)\s*%\s*(?:APY|apy)', re.IGNORECASE)
 TABLE_ROW_RE = re.compile(r'\|\s*([^|]+?)\s*\|\s*(\d+\.\d+)\s*%', re.IGNORECASE)
 DATE_RE = re.compile(r'^\d{2}[/\-]\d{2}[/\-]\d{4}$')
 LIST_ITEM_RE = re.compile(
-    r'-\s+\[([^\]]+)\]\([^)]+\)\s*[—–\-]+\s*(\d+\.\d+)%\s*APY',
+    r'-\s+\[([^\]]+)\]\([^)]+\)\s*[—–\-]+\s*(?:\d+\.\d+%\s*[–\-]+\s*)?(\d+\.\d+)%\s*APY',
     re.IGNORECASE
 )
+TERM_NAME_RE = re.compile(r'^\d+\s*(month|year|week|day)s?$', re.IGNORECASE)
 
 
 def normalize_bank_name(raw: str) -> str:
@@ -116,6 +117,8 @@ def extract_rates_from_markdown(markdown: str, product_type: str, scrape_date: d
             bank_raw, apy_str = m.group(1), m.group(2)
             if DATE_RE.match(bank_raw.strip()):
                 continue  # skip historical date rows
+            if TERM_NAME_RE.match(bank_raw.strip()):
+                continue  # skip CD term rows (e.g. "3 months", "1 year")
             bank = normalize_bank_name(bank_raw)
             if bank.lower() in ("bank", "institution", "bank name") or not bank:
                 continue

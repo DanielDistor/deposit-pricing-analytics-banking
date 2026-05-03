@@ -101,3 +101,17 @@ def test_extract_from_list_items():
     apys = [r["apy_pct"] for r in rows]
     assert 4.03 in apys
     assert all(r["product_type"] == "savings" for r in rows)
+
+
+SAMPLE_CD_RANGE_MARKDOWN = """
+- [Marcus by Goldman Sachs](https://www.bankrate.com/...) — 3.40% – 4.15% APY, $500 minimum
+- [Ally Bank](https://www.bankrate.com/...) — 3.00% – 4.00% APY, No minimum
+"""
+
+
+def test_extract_cd_range_apy():
+    rows = extract_rates_from_markdown(SAMPLE_CD_RANGE_MARKDOWN, "cd", date(2026, 4, 26))
+    assert len(rows) == 2
+    apys = [r["apy_pct"] for r in rows]
+    assert 4.15 in apys
+    assert 4.00 in apys
