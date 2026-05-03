@@ -1,3 +1,4 @@
+import re
 import pytest
 from datetime import date
 from pipelines.parse_bankrate import extract_rates_from_markdown, normalize_bank_name
@@ -66,3 +67,20 @@ def test_normalize_bank_name():
     assert normalize_bank_name("Marcus by Goldman Sachs Online Savings Account") == "Marcus by Goldman Sachs"
     assert normalize_bank_name("Ally High Yield Savings Account") == "Ally Bank"
     assert normalize_bank_name("SoFi Checking and Savings") == "SoFi"
+
+
+SAMPLE_DATE_TABLE_MARKDOWN = """
+| Date | National average APY | Top rate APY |
+|------|---------------------|-------------|
+| 02/13/2026 | 4.03% | 0.60% |
+| 01/23/2026 | 4.02% | 0.59% |
+| 12/26/2025 | 3.95% | 0.55% |
+"""
+
+
+def test_rejects_date_table_rows():
+    rows = extract_rates_from_markdown(SAMPLE_DATE_TABLE_MARKDOWN, "savings", date(2026, 4, 26))
+    for row in rows:
+        # bank_name should never be a date string
+        assert not re.match(r'^\d{2}[/\-]\d{2}[/\-]\d{4}$', row["bank_name"]), \
+            f"Date string leaked into bank_name: {row['bank_name']}"

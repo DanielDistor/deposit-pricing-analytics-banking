@@ -45,6 +45,7 @@ CD_TERM_MAP = {
 
 APY_RE = re.compile(r'(\d+\.\d+)\s*%\s*(?:APY|apy)', re.IGNORECASE)
 TABLE_ROW_RE = re.compile(r'\|\s*([^|]+?)\s*\|\s*(\d+\.\d+)\s*%', re.IGNORECASE)
+DATE_RE = re.compile(r'^\d{2}[/\-]\d{2}[/\-]\d{4}$')
 
 
 def normalize_bank_name(raw: str) -> str:
@@ -73,6 +74,8 @@ def extract_rates_from_markdown(markdown: str, product_type: str, scrape_date: d
         m = TABLE_ROW_RE.match(line.strip())
         if m:
             bank_raw, apy_str = m.group(1), m.group(2)
+            if DATE_RE.match(bank_raw.strip()):
+                continue  # skip historical date rows
             bank = normalize_bank_name(bank_raw)
             if bank.lower() in ("bank", "institution", "bank name") or not bank:
                 continue
@@ -100,8 +103,10 @@ def extract_rates_from_markdown(markdown: str, product_type: str, scrape_date: d
             continue
         header = lines[0].strip()
         bank = normalize_bank_name(header)
+        if not bank:
+            continue
 
-        if any(skip in header.lower() for skip in ["table of contents", "overview", "methodology", "faq", "editorial"]):
+        if any(skip in header.lower() for skip in ["table of contents", "overview", "methodology", "faq", "editorial", "advertiser", "sponsored", "competition", "picks"]):
             continue
 
         content = "\n".join(lines)
