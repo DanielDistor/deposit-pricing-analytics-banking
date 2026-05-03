@@ -77,6 +77,13 @@ SAMPLE_DATE_TABLE_MARKDOWN = """
 | 12/26/2025 | 3.95% | 0.55% |
 """
 
+SAMPLE_LIST_MARKDOWN = """
+- [Vio Bank](https://www.bankrate.com/...) — 4.03% APY, $100 minimum deposit
+- [LendingClub](https://www.bankrate.com/...) — 4.00% APY, No minimum deposit
+- [Bread Savings](https://www.bankrate.com/...) — 4.00% APY, $100 minimum deposit
+- [EverBank](https://www.bankrate.com/...) — 3.90% APY, No minimum deposit
+"""
+
 
 def test_rejects_date_table_rows():
     rows = extract_rates_from_markdown(SAMPLE_DATE_TABLE_MARKDOWN, "savings", date(2026, 4, 26))
@@ -84,3 +91,13 @@ def test_rejects_date_table_rows():
         # bank_name should never be a date string
         assert not re.match(r'^\d{2}[/\-]\d{2}[/\-]\d{4}$', row["bank_name"]), \
             f"Date string leaked into bank_name: {row['bank_name']}"
+
+
+def test_extract_from_list_items():
+    rows = extract_rates_from_markdown(SAMPLE_LIST_MARKDOWN, "savings", date(2026, 4, 26))
+    assert len(rows) == 4
+    bank_names = [r["bank_name"] for r in rows]
+    assert "Vio Bank" in bank_names or any("vio" in n.lower() for n in bank_names)
+    apys = [r["apy_pct"] for r in rows]
+    assert 4.03 in apys
+    assert all(r["product_type"] == "savings" for r in rows)

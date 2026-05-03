@@ -32,6 +32,17 @@ BANK_NAME_MAP = {
     "cibc": "CIBC Bank USA",
     "my banking direct": "My Banking Direct",
     "nbkc": "NBKC Bank",
+    "vio bank": "Vio Bank",
+    "openbank": "Openbank",
+    "limelight bank": "Limelight Bank",
+    "popular direct": "Popular Direct",
+    "forbright bank": "Forbright Bank",
+    "zynlo bank": "Zynlo Bank",
+    "peak bank": "Peak Bank",
+    "live oak bank": "Live Oak Bank",
+    "colorado federal": "Colorado Federal Savings Bank",
+    "axos bank": "Axos Bank",
+    "axos": "Axos Bank",
 }
 
 CD_TERM_MAP = {
@@ -46,6 +57,10 @@ CD_TERM_MAP = {
 APY_RE = re.compile(r'(\d+\.\d+)\s*%\s*(?:APY|apy)', re.IGNORECASE)
 TABLE_ROW_RE = re.compile(r'\|\s*([^|]+?)\s*\|\s*(\d+\.\d+)\s*%', re.IGNORECASE)
 DATE_RE = re.compile(r'^\d{2}[/\-]\d{2}[/\-]\d{4}$')
+LIST_ITEM_RE = re.compile(
+    r'-\s+\[([^\]]+)\]\([^)]+\)\s*[—–\-]+\s*(\d+\.\d+)%\s*APY',
+    re.IGNORECASE
+)
 
 
 def normalize_bank_name(raw: str) -> str:
@@ -68,6 +83,31 @@ def extract_term_months(text: str) -> int | None:
 def extract_rates_from_markdown(markdown: str, product_type: str, scrape_date: date) -> list[dict]:
     rows = []
     seen_banks = set()
+
+    # Strategy 0: markdown list items with hyperlinked bank names
+    # Format: - [Bank Name](url) — X.XX% APY, ...
+    for line in markdown.splitlines():
+        m = LIST_ITEM_RE.search(line)
+        if m:
+            bank_raw, apy_str = m.group(1).strip(), m.group(2)
+            bank = normalize_bank_name(bank_raw)
+            if not bank:
+                continue
+            apy = float(apy_str)
+            term = extract_term_months(line) if product_type == "cd" else None
+            key = (bank, term)
+            if key not in seen_banks:
+                seen_banks.add(key)
+                rows.append({
+                    "bank_name": bank,
+                    "product_type": product_type,
+                    "term_months": term,
+                    "apy_pct": apy,
+                    "scrape_date": scrape_date,
+                })
+
+    if rows:
+        return rows
 
     # Strategy 1: parse markdown tables
     for line in markdown.splitlines():
