@@ -10,8 +10,7 @@ st.set_page_config(
     layout="wide",
 )
 
-@st.cache_resource
-def get_connection():
+def _new_connection():
     return snowflake.connector.connect(
         account=st.secrets["snowflake"]["account"],
         user=st.secrets["snowflake"]["user"],
@@ -24,11 +23,14 @@ def get_connection():
 
 @st.cache_data(ttl=3600)
 def run_query(sql: str) -> pd.DataFrame:
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(sql)
-    cols = [desc[0].lower() for desc in cur.description]
-    return pd.DataFrame(cur.fetchall(), columns=cols)
+    conn = _new_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(sql)
+        cols = [desc[0].lower() for desc in cur.description]
+        return pd.DataFrame(cur.fetchall(), columns=cols)
+    finally:
+        conn.close()
 
 
 def load_fact_data() -> pd.DataFrame:
