@@ -18,6 +18,10 @@ logs/
 
 # Streamlit
 .streamlit/secrets.toml
+dashboard/.streamlit/
+
+# dbt user config
+dbt/.user.yml
 
 # OS
 .DS_Store
