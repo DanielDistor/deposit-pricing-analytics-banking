@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: dim_bank
+    description: "Bank dimension — one row per bank with type classification"
+    columns:
+      - name: bank_key
+        tests: [not_null, unique]
+      - name: bank_name
+        tests: [not_null, unique]
+      - name: bank_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['online', 'traditional']
+
+  - name: dim_product
+    description: "Product dimension — savings and CD products with display names"
+    columns:
+      - name: product_key
+        tests: [not_null, unique]
+      - name: product_name
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['savings', 'cd']
+
+  - name: dim_date
+    description: "Date dimension with Fed rate cycle classification"
+    columns:
+      - name: date_day
+        tests: [not_null, unique]
+
+  - name: fact_deposit_rates
+    description: "Fact table — one row per bank/product with current APY and spread vs. Fed rate"
+    columns:
+      - name: bank_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_bank')
+                field: bank_key
+      - name: product_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_key
+      - name: apy_pct
+        tests: [not_null]
+      - name: passthrough_pct
+        tests: [not_null]

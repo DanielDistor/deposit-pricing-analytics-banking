@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: stg_fred_observations
+    description: "Cleaned FRED time series data — Fed funds rate, Treasury yields, discount rate"
+    columns:
+      - name: series_id
+        tests: [not_null]
+      - name: date_day
+        tests: [not_null]
+      - name: rate_pct
+        tests: [not_null]
+
+  - name: stg_bankrate_rates
+    description: "Combined bank deposit rates from Bankrate scrape + big four seeds"
+    columns:
+      - name: bank_name
+        tests: [not_null]
+      - name: product_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['savings', 'cd']
+      - name: apy_pct
+        tests: [not_null]
+      - name: bank_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['online', 'traditional']
