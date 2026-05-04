@@ -467,20 +467,51 @@ with tab4:
             })
     growth_df = pd.DataFrame(growth_rows)
 
-    fig_growth = px.line(
-        growth_df,
-        x="Year",
-        y="Balance",
-        color="Bank",
-        color_discrete_map=BANK_COLORS,
-        title=f"How ${deposit_amount:,.0f} Grows Over 10 Years",
-        labels={"Balance": "Account Balance ($)", "Year": "Years"},
-        markers=True,
+    fig_growth = go.Figure()
+
+    for _, row in rec_df.iterrows():
+        bank = row["bank_name"]
+        apy  = float(row["apy_pct"])
+        balances = [future_value(deposit_amount, apy, y) for y in years]
+        color = BANK_COLORS.get(bank, "#2ecc71")
+        fig_growth.add_trace(go.Scatter(
+            x=years, y=balances, name=bank,
+            mode="lines",
+            line=dict(color=color, width=3),
+            hovertemplate=f"<b>{bank}</b><br>Year %{{x}}: $%{{y:,.0f}}<extra></extra>",
+        ))
+        fig_growth.add_annotation(
+            x=10, y=balances[-1],
+            text=f"  {bank.split()[0]}: ${balances[-1]:,.0f}",
+            showarrow=False, xanchor="left",
+            font=dict(color=color, size=11),
+        )
+
+    # Chase reference line
+    chase_apy = float(df[(df["bank_name"] == "JPMorgan Chase") & (df["product_name"] == "savings")]["apy_pct"].iloc[0]) if not df[(df["bank_name"] == "JPMorgan Chase") & (df["product_name"] == "savings")].empty else 0.01
+    chase_balances = [future_value(deposit_amount, chase_apy, y) for y in years]
+    fig_growth.add_trace(go.Scatter(
+        x=years, y=chase_balances, name="Chase (reference)",
+        mode="lines",
+        line=dict(color="#aaaaaa", width=2, dash="dot"),
+        hovertemplate="<b>Chase</b><br>Year %{x}: $%{y:,.0f}<extra></extra>",
+    ))
+    fig_growth.add_annotation(
+        x=10, y=chase_balances[-1],
+        text=f"  Chase: ${chase_balances[-1]:,.0f}",
+        showarrow=False, xanchor="left",
+        font=dict(color="#aaaaaa", size=11),
     )
+
     fig_growth.update_layout(
-        height=400,
+        title=f"How ${deposit_amount:,.0f} Grows Over 10 Years",
+        height=520,
         yaxis_tickprefix="$",
         yaxis_tickformat=",",
+        yaxis_title="Account Balance ($)",
+        xaxis_title="Years",
         hovermode="x unified",
+        showlegend=True,
+        margin=dict(r=180),
     )
     st.plotly_chart(fig_growth, use_container_width=True)
