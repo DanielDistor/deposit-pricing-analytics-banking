@@ -371,6 +371,57 @@ with tab4:
     )
 
     st.subheader(f"Top Banks for ${deposit_amount:,.0f} Deposit")
+
+    # ── APY comparison bar ────────────────────────────────────────────────────
+    fig_apy = px.bar(
+        rec_df.sort_values("apy_pct"),
+        x="apy_pct",
+        y="bank_name",
+        orientation="h",
+        color="bank_type",
+        color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
+        text=rec_df.sort_values("apy_pct")["apy_pct"].apply(lambda v: f"{v:.2f}%"),
+        labels={"apy_pct": "APY (%)", "bank_name": "Bank", "bank_type": "Type"},
+        title="APY Comparison — Top 5 Banks",
+    )
+    fig_apy.update_traces(textposition="outside")
+    fig_apy.update_layout(height=280, showlegend=False, margin=dict(t=40, b=20))
+    st.plotly_chart(fig_apy, use_container_width=True)
+
+    # ── Compound growth over 10 years ─────────────────────────────────────────
+    years = list(range(0, 11))
+    growth_rows = []
+    for _, row in rec_df.iterrows():
+        apy = float(row["apy_pct"])
+        for y in years:
+            growth_rows.append({
+                "Year": y,
+                "Balance": future_value(deposit_amount, apy, y),
+                "Bank": row["bank_name"],
+                "bank_type": row["bank_type"],
+            })
+    growth_df = pd.DataFrame(growth_rows)
+
+    fig_growth = px.line(
+        growth_df,
+        x="Year",
+        y="Balance",
+        color="Bank",
+        title=f"How ${deposit_amount:,.0f} Grows Over 10 Years",
+        labels={"Balance": "Account Balance ($)", "Year": "Years"},
+        markers=True,
+    )
+    fig_growth.update_layout(
+        height=400,
+        yaxis_tickprefix="$",
+        yaxis_tickformat=",",
+        hovermode="x unified",
+    )
+    st.plotly_chart(fig_growth, use_container_width=True)
+
+    st.divider()
+
+    # ── Individual bank cards ─────────────────────────────────────────────────
     for idx, (_, row) in enumerate(rec_df.iterrows()):
         medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
         apy = float(row["apy_pct"])
