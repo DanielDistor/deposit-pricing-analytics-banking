@@ -370,64 +370,39 @@ with tab4:
         axis=1,
     )
 
+    BANK_COLORS = {
+        "SoFi":                    "#6C37F4",
+        "Marcus by Goldman Sachs": "#0066CC",
+        "Ally Bank":               "#8B1A1A",
+        "Vio Bank":                "#FF6B2B",
+        "Bread Savings":           "#1B3B6F",
+        "LendingClub Bank":        "#00B2A9",
+        "Openbank":                "#E5002B",
+        "Popular Direct":          "#EF3E23",
+        "EverBank":                "#004990",
+        "Limelight Bank":          "#F5A623",
+        "Forbright Bank":          "#2E7D32",
+        "Zynlo Bank":              "#7B1FA2",
+        "Peak Bank":               "#1565C0",
+        "Live Oak Bank":           "#2E86AB",
+        "Colorado Federal Savings Bank": "#C62828",
+        "JPMorgan Chase":          "#117ACA",
+        "Bank of America":         "#E31837",
+        "Wells Fargo":             "#D71E28",
+        "Citibank":                "#003B70",
+    }
+
     st.subheader(f"Top Banks for ${deposit_amount:,.0f} Deposit")
 
-    # ── APY comparison bar ────────────────────────────────────────────────────
-    fig_apy = px.bar(
-        rec_df.sort_values("apy_pct"),
-        x="apy_pct",
-        y="bank_name",
-        orientation="h",
-        color="bank_type",
-        color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
-        text=rec_df.sort_values("apy_pct")["apy_pct"].apply(lambda v: f"{v:.2f}%"),
-        labels={"apy_pct": "APY (%)", "bank_name": "Bank", "bank_type": "Type"},
-        title="APY Comparison — Top 5 Banks",
-    )
-    fig_apy.update_traces(textposition="outside")
-    fig_apy.update_layout(height=280, showlegend=False, margin=dict(t=40, b=20))
-    st.plotly_chart(fig_apy, use_container_width=True)
-
-    # ── Compound growth over 10 years ─────────────────────────────────────────
-    years = list(range(0, 11))
-    growth_rows = []
-    for _, row in rec_df.iterrows():
-        apy = float(row["apy_pct"])
-        for y in years:
-            growth_rows.append({
-                "Year": y,
-                "Balance": future_value(deposit_amount, apy, y),
-                "Bank": row["bank_name"],
-                "bank_type": row["bank_type"],
-            })
-    growth_df = pd.DataFrame(growth_rows)
-
-    fig_growth = px.line(
-        growth_df,
-        x="Year",
-        y="Balance",
-        color="Bank",
-        title=f"How ${deposit_amount:,.0f} Grows Over 10 Years",
-        labels={"Balance": "Account Balance ($)", "Year": "Years"},
-        markers=True,
-    )
-    fig_growth.update_layout(
-        height=400,
-        yaxis_tickprefix="$",
-        yaxis_tickformat=",",
-        hovermode="x unified",
-    )
-    st.plotly_chart(fig_growth, use_container_width=True)
-
-    st.divider()
+    medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
 
     # ── Individual bank cards — left: info, right: growth chart ──────────────
-    medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
     for idx, (_, row) in enumerate(rec_df.iterrows()):
         apy = float(row["apy_pct"])
         fv_1  = future_value(deposit_amount, apy, 1)
         fv_5  = future_value(deposit_amount, apy, 5)
         fv_10 = future_value(deposit_amount, apy, 10)
+        color = BANK_COLORS.get(row["bank_name"], "#2ecc71")
 
         left, right = st.columns([1, 1])
 
@@ -444,7 +419,7 @@ with tab4:
             fig_card = go.Figure(go.Bar(
                 x=["1 Year", "5 Years", "10 Years"],
                 y=[fv_1, fv_5, fv_10],
-                marker_color=["#a8d8a8", "#4caf78", "#1a7a45"],
+                marker_color=color,
                 text=[f"${fv_1:,.0f}", f"${fv_5:,.0f}", f"${fv_10:,.0f}"],
                 textposition="outside",
             ))
@@ -459,3 +434,53 @@ with tab4:
             st.plotly_chart(fig_card, use_container_width=True)
 
         st.divider()
+
+    # ── APY comparison bar ────────────────────────────────────────────────────
+    bank_colors_list = [BANK_COLORS.get(b, "#2ecc71") for b in rec_df.sort_values("apy_pct")["bank_name"]]
+    fig_apy = go.Figure(go.Bar(
+        x=rec_df.sort_values("apy_pct")["apy_pct"],
+        y=rec_df.sort_values("apy_pct")["bank_name"],
+        orientation="h",
+        marker_color=bank_colors_list,
+        text=rec_df.sort_values("apy_pct")["apy_pct"].apply(lambda v: f"{v:.2f}%"),
+        textposition="outside",
+    ))
+    fig_apy.update_layout(
+        title="APY Comparison — Top 5 Banks",
+        xaxis_title="APY (%)",
+        height=280,
+        showlegend=False,
+        margin=dict(t=40, b=20),
+    )
+    st.plotly_chart(fig_apy, use_container_width=True)
+
+    # ── Compound growth over 10 years ─────────────────────────────────────────
+    years = list(range(0, 11))
+    growth_rows = []
+    for _, row in rec_df.iterrows():
+        apy = float(row["apy_pct"])
+        for y in years:
+            growth_rows.append({
+                "Year": y,
+                "Balance": future_value(deposit_amount, apy, y),
+                "Bank": row["bank_name"],
+            })
+    growth_df = pd.DataFrame(growth_rows)
+
+    fig_growth = px.line(
+        growth_df,
+        x="Year",
+        y="Balance",
+        color="Bank",
+        color_discrete_map=BANK_COLORS,
+        title=f"How ${deposit_amount:,.0f} Grows Over 10 Years",
+        labels={"Balance": "Account Balance ($)", "Year": "Years"},
+        markers=True,
+    )
+    fig_growth.update_layout(
+        height=400,
+        yaxis_tickprefix="$",
+        yaxis_tickformat=",",
+        hovermode="x unified",
+    )
+    st.plotly_chart(fig_growth, use_container_width=True)
