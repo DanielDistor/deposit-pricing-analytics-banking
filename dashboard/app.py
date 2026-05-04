@@ -162,71 +162,61 @@ with tab2:
         "The gap between a bank's line and the Fed line is the yield your client is leaving on the table every single year."
     )
 
-    bank_options = sorted(df["bank_name"].unique().tolist())
-
-    default_banks = [b for b in ["SoFi", "Marcus by Goldman Sachs", "Ally Bank",
-                                  "JPMorgan Chase", "Bank of America", "Wells Fargo"]
-                     if b in bank_options]
-
-    selected_banks = st.multiselect(
-        "Select banks to compare",
-        options=bank_options,
-        default=default_banks,
-        key="tab2_banks",
-    )
-
-    product_tab2 = st.radio(
-        "Product type",
-        options=["savings", "cd"],
-        format_func=lambda x: "Savings Accounts" if x == "savings" else "CDs",
-        horizontal=True,
-        key="tab2_product",
-    )
+    savings_df = df[df["product_name"] == "savings"].drop_duplicates("bank_name")
+    online_avg = savings_df[savings_df["bank_type"] == "online"]["apy_pct"].astype(float).mean()
+    trad_avg   = savings_df[savings_df["bank_type"] == "traditional"]["apy_pct"].astype(float).mean()
 
     fig = go.Figure()
 
+    # Fed funds rate history
     fig.add_trace(go.Scatter(
         x=fred["date_day"],
         y=fred["rate_pct"],
-        name="Fed Funds Rate (historical)",
+        name="Fed Funds Rate",
         line=dict(color="black", width=3, dash="dash"),
     ))
 
-    bank_slice = df[
-        (df["bank_name"].isin(selected_banks)) &
-        (df["product_name"] == product_tab2)
-    ].drop_duplicates("bank_name")
+    # Shaded band: where online banks sit today
+    fig.add_hrect(
+        y0=online_avg - 0.3, y1=online_avg + 0.3,
+        fillcolor="#2ecc71", opacity=0.15, line_width=0,
+        annotation_text=f"Online banks today (~{online_avg:.2f}% avg)",
+        annotation_position="right",
+    )
 
-    online_colors = ["#2ecc71", "#27ae60", "#1abc9c", "#16a085"]
-    trad_colors   = ["#e74c3c", "#c0392b", "#e67e22", "#d35400"]
-    oi, ti = 0, 0
+    # Shaded band: where traditional banks sit today
+    fig.add_hrect(
+        y0=0, y1=max(trad_avg + 0.05, 0.1),
+        fillcolor="#e74c3c", opacity=0.15, line_width=0,
+        annotation_text=f"Traditional banks today (~{trad_avg:.2f}% avg)",
+        annotation_position="right",
+    )
 
-    for _, row in bank_slice.iterrows():
-        is_online = row["bank_type"] == "online"
-        color = online_colors[oi % len(online_colors)] if is_online else trad_colors[ti % len(trad_colors)]
-        if is_online:
-            oi += 1
-        else:
-            ti += 1
-        fig.add_hline(
-            y=float(row["apy_pct"]),
-            line_color=color,
-            line_width=2,
-            annotation_text=f"{row['bank_name']} ({float(row['apy_pct']):.2f}%)",
-            annotation_position="right",
-        )
+    # Annotate the 2022-2023 hiking cycle
+    fig.add_vrect(
+        x0="2022-03-01", x1="2023-07-31",
+        fillcolor="orange", opacity=0.08, line_width=0,
+        annotation_text="2022–2023 Fed Hiking Cycle (+5.25%)",
+        annotation_position="top left",
+    )
 
     fig.update_layout(
         xaxis_title="Date",
         yaxis_title="Rate (%)",
         height=520,
-        legend_title="",
+        showlegend=True,
     )
     st.plotly_chart(fig, use_container_width=True)
 
     col_a, col_b = st.columns(2)
-    col_a.success("**Green lines = online banks** — their rates sit near the Fed peak. Good for savers.")
-    col_b.error("**Red lines = traditional banks** — their rates barely moved from 0%. Bad for savers.")
+    col_a.success(
+        f"Online banks (Marcus, Ally, SoFi) currently average {online_avg:.2f}% APY on savings. "
+        "They tracked the Fed's rate hikes and their rates reflect it."
+    )
+    col_b.error(
+        f"Traditional banks (Chase, BofA, Wells Fargo) currently average {trad_avg:.2f}% APY on savings. "
+        "They did not raise deposit rates during the hiking cycle and remain near zero."
+    )
 
 
 # ── Tab 3: Pass-Through Analysis ─────────────────────────────────────────────
@@ -327,12 +317,12 @@ with tab4:
 
     term_months = None
     if product_rec == "cd":
-        term_label = st.selectbox(
-            "CD term",
-            options=["6-Month CD", "1-Year CD", "3-Year CD", "5-Year CD"],
-        )
-        term_map = {"6-Month CD": 6, "1-Year CD": 12, "3-Year CD": 36, "5-Year CD": 60}
-        term_months = term_map[term_label]
+        available_terms = sorted(df[df["product_name"] == "cd"]["term_months"].dropna().unique().astype(int).tolist())
+        term_label_map = {6: "6-Month CD", 12: "1-Year CD", 36: "3-Year CD", 60: "5-Year CD"}
+        term_options = [term_label_map.get(t, f"{t}-Month CD") for t in available_terms]
+        term_label = st.selectbox("CD term", options=term_options)
+        reverse_map = {v: k for k, v in term_label_map.items()}
+        term_months = reverse_map.get(term_label, available_terms[0])
 
     rec_df = df[df["product_name"] == product_rec].copy()
     if term_months:
