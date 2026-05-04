@@ -65,8 +65,8 @@ def load_fred_history() -> pd.DataFrame:
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("🏦 Deposit Pricing Analytics")
 st.markdown(
-    "As a wealth management advisor, your job is to make sure your client's money is working as hard as possible. "
-    "This tool analyzes deposit rates across major U.S. banks so you can tell your client exactly where to put their money and how much more they stand to earn."
+    "A wealth management analytics tool that identifies which U.S. banks pass Federal Reserve rate increases to depositors "
+    "and which ones keep the spread as profit. Built to support deposit placement decisions for high-net-worth clients."
 )
 
 df = load_fact_data()
@@ -80,24 +80,22 @@ st.metric("Current Fed Funds Rate", f"{current_fed_rate:.2f}%",
 with st.expander("📖 Key Terms — What does all this mean? (click to expand)"):
     st.markdown("""
     **APY (Annual Percentage Yield)**
-    The actual interest rate your money earns in a year, accounting for compounding. Higher APY means more money in your pocket. A $100,000 deposit at 4% APY earns $4,000 a year.
+    The effective annual interest rate a deposit account earns, accounting for compounding. A $100,000 deposit at 4.00% APY generates $4,000 in interest per year.
 
     **Fed Funds Rate**
-    The benchmark interest rate the Federal Reserve sets for overnight lending between banks. When the Fed raises this rate, banks can charge more on loans but are not required to pay you more on deposits. That gap between what banks earn and what they pay savers is exactly what this analysis exposes.
+    The benchmark overnight lending rate set by the Federal Reserve. When this rate rises, banks earn more on loans but are not required to raise deposit rates. The gap between what banks earn on assets and what they pay depositors is where this analysis focuses.
 
     **Pass-Through Rate (%)**
-    How much of the Fed's rate increase a bank actually passed on to its depositors. A bank at 100% gave savers the full Fed rate. A bank at 1% kept almost everything as profit. High pass-through is good for your client. Low pass-through means the bank is quietly extracting margin at your client's expense.
+    The share of the Fed's rate increase that a bank passed on to depositors. A bank at 100% gave savers the full Fed rate. A bank at 1% absorbed nearly all of it as additional margin. High pass-through indicates a bank that competes for deposits on rate. Low pass-through indicates one that relies on customer inertia.
 
     **Spread (%)**
-    The difference between the Fed rate and what a bank pays you. A wider spread means the bank is keeping more and giving you less. Chase's spread on savings is over 4.6%, meaning they pocket nearly all of the Fed's rate. Marcus's spread is under 1%, meaning they share most of it with you.
+    The difference between the Fed funds rate and a bank's deposit APY. A wider spread means the bank is retaining more of the interest environment as profit. Chase's savings spread exceeds 4.6%. Marcus's is under 1%.
 
     **Online Bank vs. Traditional Bank**
-    Online banks like Marcus, Ally, and SoFi have no physical branches, so they compete almost entirely on rate. They have to offer high APYs to attract deposits. Traditional banks like Chase, Bank of America, and Wells Fargo compete on convenience and brand trust. Their customers rarely switch regardless of rate, so they have little pressure to raise deposit rates.
+    Online banks such as Marcus, Ally, and SoFi have no physical branches and compete almost entirely on deposit rate. Traditional banks such as Chase, Bank of America, and Wells Fargo compete on convenience and brand. Because their deposit bases are less rate-sensitive, they face less pressure to raise APYs when the Fed hikes.
 
-    **Does the rate change after your client deposits?**
-    It depends on the product. Savings accounts are variable, meaning the bank can change the APY anytime. If the Fed cuts rates, the bank will likely follow and your client earns less. CDs are fixed for the full term. Whatever rate your client locks in on day one, that is what they earn until maturity regardless of what the Fed does. In a rate-cutting environment, locking into a CD now protects your client's yield.
-
-    **Bottom line for your client:** Moving $100,000 from Chase (0.01% APY) to SoFi (4.30% APY) generates $4,290 more per year with the same FDIC protection and the same level of safety.
+    **Are deposit rates fixed or variable?**
+    Savings account APYs are variable. Banks can adjust them at any time, and they typically follow Fed rate moves. CD rates are fixed for the full term. A depositor who locks in a CD today keeps that rate until maturity regardless of future Fed decisions, which makes CDs attractive when rates are expected to fall.
     """)
 
 st.divider()
