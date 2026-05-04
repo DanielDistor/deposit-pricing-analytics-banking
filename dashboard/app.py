@@ -404,11 +404,13 @@ with tab3:
     table_df["bank_type"] = table_df["bank_type"].str.capitalize()
     table_df["apy_pct"] = table_df["apy_pct"].astype(float).round(2)
     table_df["passthrough_pct"] = table_df["passthrough_pct"].astype(float).round(1)
+    table_df["annual_earnings"] = (table_df["apy_pct"] / 100 * 10_000).round(0).astype(int)
     table_df = table_df.sort_values("passthrough_pct", ascending=False).rename(columns={
         "bank_name": "Bank",
         "bank_type": "Type",
         "apy_pct": "APY (%)",
         "passthrough_pct": "Pass-Through (%)",
+        "annual_earnings": "Annual Earnings on $10K",
     })
     def _highlight_extremes(df):
         styles = pd.DataFrame("", index=df.index, columns=df.columns)
@@ -420,7 +422,11 @@ with tab3:
         return styles
 
     st.dataframe(
-        table_df.style.apply(_highlight_extremes, axis=None).format({"APY (%)": "{:.2f}%", "Pass-Through (%)": "{:.1f}%"}),
+        table_df.style.apply(_highlight_extremes, axis=None).format({
+            "APY (%)": "{:.2f}%",
+            "Pass-Through (%)": "{:.1f}%",
+            "Annual Earnings on $10K": "${:,.0f}",
+        }),
         use_container_width=True,
         hide_index=True,
     )
