@@ -87,28 +87,36 @@ st.info(
 )
 
 # ── Terminology Glossary ──────────────────────────────────────────────────────
-with st.expander("📖 Key Terms — What does all this mean? (click to expand)"):
-    st.markdown("""
-    **APY (Annual Percentage Yield)**
-    The effective annual interest rate a deposit account earns, accounting for compounding. A $100,000 deposit at 4.00% APY generates $4,000 in interest per year.
+st.markdown("### 📖 Key Terms")
+st.markdown("Read the definitions below before using the dashboard.")
 
-    **Fed Funds Rate**
-    The benchmark overnight lending rate set by the Federal Reserve. When this rate rises, banks earn more on loans but are not required to raise deposit rates. The gap between what banks earn on assets and what they pay depositors is where this analysis focuses.
+st.markdown("""
+**APY (Annual Percentage Yield)**
+The effective annual interest rate a deposit account earns, accounting for compounding. A $100,000 deposit at 4.00% APY generates $4,000 in interest per year.
 
-    **Pass-Through Rate (%)**
-    The share of the Fed's rate increase that a bank passed on to depositors. A bank at 100% gave savers the full Fed rate. A bank at 1% absorbed nearly all of it as additional margin. High pass-through indicates a bank that competes for deposits on rate. Low pass-through indicates one that relies on customer inertia.
+**Fed Funds Rate**
+The benchmark overnight lending rate set by the Federal Reserve. When this rate rises, banks earn more on loans but are not required to raise deposit rates. The gap between what banks earn on assets and what they pay depositors is where this analysis focuses.
 
-    **Spread (%)**
-    The difference between the Fed funds rate and a bank's deposit APY. A wider spread means the bank is retaining more of the interest environment as profit. Chase's savings spread exceeds 4.6%. Marcus's is under 1%.
+**Pass-Through Rate (%)**
+The share of the Fed's rate increase that a bank passed on to depositors. A bank at 100% gave savers the full Fed rate. A bank at 1% absorbed nearly all of it as additional margin. High pass-through indicates a bank that competes for deposits on rate. Low pass-through indicates one that relies on customer inertia.
 
-    **Online Bank vs. Traditional Bank**
-    Online banks such as Marcus, Ally, and SoFi have no physical branches and compete almost entirely on deposit rate. Traditional banks such as Chase, Bank of America, and Wells Fargo compete on convenience and brand. Because their deposit bases are less rate-sensitive, they face less pressure to raise APYs when the Fed hikes.
+**Spread (%)**
+The difference between the Fed funds rate and a bank's deposit APY. A wider spread means the bank is retaining more of the interest environment as profit. Chase's savings spread exceeds 4.6%. Marcus's is under 1%.
 
-    **Are deposit rates fixed or variable?**
-    Savings account APYs are variable. Banks can adjust them at any time, and they typically follow Fed rate moves. CD rates are fixed for the full term. A depositor who locks in a CD today keeps that rate until maturity regardless of future Fed decisions, which makes CDs attractive when rates are expected to fall.
-    """)
+**Online Bank vs. Traditional Bank**
+Online banks such as Marcus, Ally, and SoFi have no physical branches and compete almost entirely on deposit rate. Traditional banks such as Chase, Bank of America, and Wells Fargo compete on convenience and brand. Because their deposit bases are less rate-sensitive, they face less pressure to raise APYs when the Fed hikes.
+
+**Are deposit rates fixed or variable?**
+Savings account APYs are variable. Banks can adjust them at any time, and they typically follow Fed rate moves. CD rates are fixed for the full term. A depositor who locks in a CD today keeps that rate until maturity regardless of future Fed decisions, which makes CDs attractive when rates are expected to fall.
+""")
+
+terms_confirmed = st.checkbox("I have read and understood the key terms above.")
 
 st.divider()
+
+if not terms_confirmed:
+    st.warning("Please read and confirm the key terms above to access the dashboard.")
+    st.stop()
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
