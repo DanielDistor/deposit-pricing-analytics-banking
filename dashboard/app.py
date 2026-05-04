@@ -65,7 +65,8 @@ def load_fred_history() -> pd.DataFrame:
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("🏦 Deposit Pricing Analytics")
 st.markdown(
-    "Tracking how major U.S. banks respond to Federal Reserve rate changes and which ones actually pass those increases to savers."
+    "A wealth management tool that tracks how major U.S. banks respond to Federal Reserve rate changes. "
+    "Use it to see which banks are paying savers the most and where clients should be putting their money."
 )
 
 df = load_fact_data()
