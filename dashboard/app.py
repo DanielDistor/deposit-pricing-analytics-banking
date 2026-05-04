@@ -144,7 +144,7 @@ if not terms_confirmed:
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Current Rates",
-    "📈 Rate Timeline",
+    "📈 Rate History",
     "⚡ Pass-Through Analysis",
     "💡 Bank Recommender",
 ])
@@ -205,72 +205,50 @@ with tab1:
     )
 
 
-# ── Tab 2: Rate Timeline ──────────────────────────────────────────────────────
+# ── Tab 2: Rate History ───────────────────────────────────────────────────────
 with tab2:
-    st.subheader("Rate Timeline: The Fed vs. Where Banks Stand Today")
+    st.subheader("Rate History: Where Each Bank Stands vs. the Fed")
     st.markdown(
-        "The black dashed line shows how the Federal Reserve's benchmark rate moved over 25 years. "
-        "The colored horizontal lines show where each bank's deposit rate sits right now. "
-        "This view matters because it reveals each bank's behavioral pattern. "
-        "A bank that followed the Fed on the way up will likely follow it back down when rates get cut. "
-        "A bank that never moved during the 2022 to 2023 hiking cycle will not move for your client in the future either. "
-        "The gap between a bank's line and the Fed line is the yield your client is leaving on the table every single year."
+        "The Fed currently pays banks 3.64% to hold reserves overnight. "
+        "The bars below show what each bank is actually paying savers on a savings account. "
+        "The gap between the Fed rate and a bank's bar is money the bank is keeping instead of passing to depositors."
     )
 
-    savings_df = df[df["product_name"] == "savings"].drop_duplicates("bank_name")
-    online_avg = savings_df[savings_df["bank_type"] == "online"]["apy_pct"].astype(float).mean()
-    trad_avg   = savings_df[savings_df["bank_type"] == "traditional"]["apy_pct"].astype(float).mean()
+    savings_df = df[df["product_name"] == "savings"].drop_duplicates("bank_name").copy()
+    savings_df["apy_pct"] = savings_df["apy_pct"].astype(float)
+    savings_df = savings_df.sort_values("apy_pct", ascending=False)
 
-    fig = go.Figure()
-
-    # Fed funds rate history
-    fig.add_trace(go.Scatter(
-        x=fred["date_day"],
-        y=fred["rate_pct"],
-        name="Fed Funds Rate",
-        line=dict(color="black", width=3, dash="dash"),
-    ))
-
-    # Shaded band: where online banks sit today
-    fig.add_hrect(
-        y0=online_avg - 0.3, y1=online_avg + 0.3,
-        fillcolor="#2ecc71", opacity=0.15, line_width=0,
-        annotation_text=f"Online banks today (~{online_avg:.2f}% avg)",
-        annotation_position="right",
+    fig = px.bar(
+        savings_df,
+        x="bank_name",
+        y="apy_pct",
+        color="bank_type",
+        color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
+        labels={"bank_name": "Bank", "apy_pct": "Savings APY (%)", "bank_type": "Type"},
+        text=savings_df["apy_pct"].apply(lambda v: f"{v:.2f}%"),
     )
-
-    # Shaded band: where traditional banks sit today
-    fig.add_hrect(
-        y0=0, y1=max(trad_avg + 0.05, 0.1),
-        fillcolor="#e74c3c", opacity=0.15, line_width=0,
-        annotation_text=f"Traditional banks today (~{trad_avg:.2f}% avg)",
-        annotation_position="right",
+    fig.add_hline(
+        y=current_fed_rate,
+        line_dash="dash",
+        line_color="black",
+        line_width=2,
+        annotation_text=f"Fed Funds Rate ({current_fed_rate:.2f}%)",
+        annotation_position="top right",
     )
-
-    # Annotate the 2022-2023 hiking cycle
-    fig.add_vrect(
-        x0="2022-03-01", x1="2023-07-31",
-        fillcolor="orange", opacity=0.08, line_width=0,
-        annotation_text="2022–2023 Fed Hiking Cycle (+5.25%)",
-        annotation_position="top left",
-    )
-
-    fig.update_layout(
-        xaxis_title="Date",
-        yaxis_title="Rate (%)",
-        height=520,
-        showlegend=True,
-    )
+    fig.update_traces(textposition="outside")
+    fig.update_layout(height=460, showlegend=True, yaxis_range=[0, current_fed_rate + 1])
     st.plotly_chart(fig, use_container_width=True)
 
+    online_avg = savings_df[savings_df["bank_type"] == "online"]["apy_pct"].mean()
+    trad_avg   = savings_df[savings_df["bank_type"] == "traditional"]["apy_pct"].mean()
     col_a, col_b = st.columns(2)
     col_a.success(
-        f"Online banks (Marcus, Ally, SoFi) currently average {online_avg:.2f}% APY on savings. "
-        "They tracked the Fed's rate hikes and their rates reflect it."
+        f"Online banks average {online_avg:.2f}% APY. "
+        "They raised rates when the Fed did and kept them competitive."
     )
     col_b.error(
-        f"Traditional banks (Chase, BofA, Wells Fargo) currently average {trad_avg:.2f}% APY on savings. "
-        "They did not raise deposit rates during the hiking cycle and remain near zero."
+        f"Traditional banks average {trad_avg:.2f}% APY. "
+        "Despite the Fed raising rates significantly, they barely moved deposit rates."
     )
 
 
