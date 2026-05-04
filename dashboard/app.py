@@ -416,7 +416,7 @@ with tab3:
         styles = pd.DataFrame("", index=df.index, columns=df.columns)
         max_val = df["Pass-Through (%)"].max()
         min_val = df["Pass-Through (%)"].min()
-        for col in df.columns:
+        for col in ["Bank", "Pass-Through (%)", "Annual Earnings on $10K"]:
             styles.loc[df["Pass-Through (%)"] == max_val, col] = "background-color: rgba(34,197,94,0.3);"
             styles.loc[df["Pass-Through (%)"] == min_val, col] = "background-color: rgba(239,68,68,0.3);"
         return styles
