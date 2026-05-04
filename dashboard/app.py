@@ -147,8 +147,18 @@ with tab1:
         "passthrough_pct": "Pass-Through (%)",
     })
 
+    def _color_apy(series):
+        lo, hi = series.min(), series.max()
+        out = []
+        for v in series:
+            ratio = (v - lo) / (hi - lo) if hi != lo else 0.5
+            r = int(220 * (1 - ratio))
+            g = int(180 * ratio + 40)
+            out.append(f"background-color: rgb({r},{g},60)")
+        return out
+
     st.dataframe(
-        display_df.style.background_gradient(subset=["APY (%)"], cmap="RdYlGn"),
+        display_df.style.apply(_color_apy, subset=["APY (%)"]),
         use_container_width=True,
         hide_index=True,
     )
