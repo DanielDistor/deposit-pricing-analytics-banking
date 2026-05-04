@@ -76,13 +76,13 @@ fred_as_of = pd.to_datetime(fred["date_day"].iloc[-1]).strftime("%B %Y") if not 
 
 st.metric("Current Fed Funds Rate", f"{current_fed_rate:.2f}%")
 st.caption(
-    f"As of {fred_as_of}. Source: Federal Reserve Bank of St. Louis (FRED), series FEDFUNDS — "
+    f"As of {fred_as_of}. Source: Federal Reserve Bank of St. Louis (FRED), series FEDFUNDS. "
     "federalreserve.gov / fred.stlouisfed.org"
 )
 st.info(
     f"The Fed funds rate is the benchmark that sets the ceiling on what banks can earn. "
     f"At {current_fed_rate:.2f}%, a bank that fully passes this rate to depositors would offer a {current_fed_rate:.2f}% APY. "
-    "In practice, most traditional banks pay a fraction of that — pocketing the difference as profit margin. "
+    "In practice, most traditional banks pay a fraction of that and pocket the difference as profit margin. "
     "This dashboard measures exactly how much each bank shares with savers versus how much they keep."
 )
 
@@ -92,17 +92,17 @@ st.markdown("Familiarize yourself with these concepts before exploring the data.
 
 terms = [
     ("APY (Annual Percentage Yield)",
-     "The annual interest rate a deposit earns. 4.00% APY on $100k = $4,000/year."),
+     "The annual interest rate a deposit earns. A 4.00% APY on $100,000 generates $4,000 per year."),
     ("Fed Funds Rate",
-     "The Fed's benchmark rate. Banks earn more when it rises — but aren't required to pass that to depositors."),
+     "The Fed's benchmark rate. Banks earn more when it rises but are not required to pass any of that to depositors."),
     ("Pass-Through Rate (%)",
-     "How much of the Fed's rate a bank shares with savers. 100% = full pass-through. Under 10% = bank keeps almost everything."),
+     "How much of the Fed's rate a bank shares with savers. 100% means full pass-through. Under 10% means the bank keeps almost everything."),
     ("Spread (%)",
-     "Fed rate minus the bank's APY. Wider spread = more profit for the bank, less for the depositor."),
+     "The gap between the Fed rate and a bank's APY. A wider spread means more profit for the bank and less for the depositor."),
     ("Online vs. Traditional Bank",
-     "Online banks (Marcus, Ally, SoFi) compete on rate. Traditional banks (Chase, BofA, Wells) compete on branch access and brand."),
+     "Online banks like Marcus, Ally, and SoFi compete on rate. Traditional banks like Chase, BofA, and Wells Fargo compete on branch access and brand."),
     ("Fixed vs. Variable Rates",
-     "Savings APYs are variable and move with the Fed. CD rates lock in at the time of deposit for the full term."),
+     "Savings APYs are variable and move with the Fed. CD rates lock in at the time of deposit and hold for the full term."),
 ]
 
 col_a, col_b = st.columns(2)
@@ -115,7 +115,7 @@ for i, (term, definition) in enumerate(terms):
 
 st.divider()
 
-terms_confirmed = st.checkbox("✅ I have read and understood the key terms above — unlock the dashboard.")
+terms_confirmed = st.checkbox("I have read and understood the key terms above.")
 
 if not terms_confirmed:
     st.stop()
