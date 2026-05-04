@@ -41,6 +41,8 @@ FRED series loaded: Fed Funds Rate (monthly + daily), 3-Month/1-Year/2-Year/5-Ye
 
 ## Pipeline Diagram
 
+> Mermaid renders natively on GitHub. The PNG below is a static backup for environments that do not support Mermaid rendering.
+
 ```mermaid
 flowchart LR
     FRED[FRED API\nFederal Reserve] -->|extract_fred.py\nGitHub Actions| RAW_FRED[(RAW.FRED_OBSERVATIONS\nSnowflake)]
@@ -64,6 +66,8 @@ flowchart LR
 ---
 
 ## ERD
+
+> Mermaid renders natively on GitHub. The PNG below is a static backup for environments that do not support Mermaid rendering.
 
 ```mermaid
 erDiagram
