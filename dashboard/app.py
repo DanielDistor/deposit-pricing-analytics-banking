@@ -184,22 +184,20 @@ with tab1:
         "passthrough_pct": "Pass-Through (%)",
     })
 
+    def _color_apy(series):
+        lo, hi = 0.0, 5.5
+        out = []
+        for v in series:
+            ratio = max(0, min(1, (v - lo) / (hi - lo)))
+            r = int(220 * (1 - ratio))
+            g = int(160 * ratio + 60)
+            out.append(f"background-color: rgba({r},{g},70,0.55); color: #111;")
+        return out
+
     st.dataframe(
-        display_df,
+        display_df.style.apply(_color_apy, subset=["APY (%)"]).format({"APY (%)": "{:.2f}%", "Pass-Through (%)": "{:.1f}%"}),
         use_container_width=True,
         hide_index=True,
-        column_config={
-            "APY (%)": st.column_config.ProgressColumn(
-                "APY (%)",
-                format="%.2f%%",
-                min_value=0,
-                max_value=6.0,
-            ),
-            "Pass-Through (%)": st.column_config.NumberColumn(
-                "Pass-Through (%)",
-                format="%.1f%%",
-            ),
-        },
     )
     st.caption(
         "Banks at the top are paying depositors the most. "
