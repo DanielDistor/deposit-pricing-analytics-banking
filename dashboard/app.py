@@ -64,9 +64,9 @@ def load_fred_history() -> pd.DataFrame:
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("🏦 Deposit Pricing Analytics")
-st.caption(
-    "Tracking how major U.S. banks respond to Federal Reserve rate changes. "
-    "Data: FRED API (Fed rates) + Bankrate (bank deposit rates)."
+st.markdown(
+    "As a wealth management advisor, your job is to make sure your client's money is working as hard as possible. "
+    "This tool analyzes deposit rates across major U.S. banks so you can tell your client exactly where to put their money and how much more they stand to earn."
 )
 
 df = load_fact_data()
@@ -80,40 +80,24 @@ st.metric("Current Fed Funds Rate", f"{current_fed_rate:.2f}%",
 with st.expander("📖 Key Terms — What does all this mean? (click to expand)"):
     st.markdown("""
     **APY (Annual Percentage Yield)**
-    The actual interest rate your money earns in a year, including compounding.
-    *Higher APY = more money in your pocket.* If you deposit $100,000 at 4% APY, you earn $4,000/year.
-
-    ---
+    The actual interest rate your money earns in a year, accounting for compounding. Higher APY means more money in your pocket. A $100,000 deposit at 4% APY earns $4,000 a year.
 
     **Fed Funds Rate**
-    The interest rate the Federal Reserve sets for overnight bank-to-bank lending.
-    When the Fed raises this rate, banks can charge more on loans — but they don't *have* to pay you more on deposits. That's the whole story here.
-
-    ---
+    The benchmark interest rate the Federal Reserve sets for overnight lending between banks. When the Fed raises this rate, banks can charge more on loans but are not required to pay you more on deposits. That gap between what banks earn and what they pay savers is exactly what this analysis exposes.
 
     **Pass-Through Rate (%)**
-    How much of the Fed's rate increase a bank actually passed on to depositors.
-    - **High pass-through (70–100%+) = GOOD for savers.** The bank shared the Fed's rate hike with you.
-    - **Low pass-through (<10%) = BAD for savers.** The bank kept the rate increase as extra profit and left you earning near zero.
-
-    *Example: The Fed raised rates by 4.64% between 2022–2023. SoFi raised its savings APY by ~4.3% → ~93% pass-through. Chase raised its savings APY by ~0% → <1% pass-through.*
-
-    ---
+    How much of the Fed's rate increase a bank actually passed on to its depositors. A bank at 100% gave savers the full Fed rate. A bank at 1% kept almost everything as profit. High pass-through is good for your client. Low pass-through means the bank is quietly extracting margin at your client's expense.
 
     **Spread (%)**
-    The gap between the Fed rate and what a bank pays you. A wider spread means the bank is keeping more profit.
-    - Chase spread on savings: ~4.63% (they pay you 0.01%, pocket the rest)
-    - Marcus spread on savings: ~0.54% (they pay you most of the Fed rate)
-
-    ---
+    The difference between the Fed rate and what a bank pays you. A wider spread means the bank is keeping more and giving you less. Chase's spread on savings is over 4.6%, meaning they pocket nearly all of the Fed's rate. Marcus's spread is under 1%, meaning they share most of it with you.
 
     **Online Bank vs. Traditional Bank**
-    Online banks (Marcus, Ally, SoFi) have no physical branches, so they compete for your money entirely on rate — they *have* to offer high APYs.
-    Traditional banks (Chase, BofA, Wells Fargo) compete on convenience and brand loyalty. Their customers rarely switch, so they don't need to raise deposit rates.
+    Online banks like Marcus, Ally, and SoFi have no physical branches, so they compete almost entirely on rate. They have to offer high APYs to attract deposits. Traditional banks like Chase, Bank of America, and Wells Fargo compete on convenience and brand trust. Their customers rarely switch regardless of rate, so they have little pressure to raise deposit rates.
 
-    ---
+    **Does the rate change after your client deposits?**
+    It depends on the product. Savings accounts are variable, meaning the bank can change the APY anytime. If the Fed cuts rates, the bank will likely follow and your client earns less. CDs are fixed for the full term. Whatever rate your client locks in on day one, that is what they earn until maturity regardless of what the Fed does. In a rate-cutting environment, locking into a CD now protects your client's yield.
 
-    **Bottom line for your client:** Moving $100,000 from Chase (0.01% APY) to SoFi (4.30% APY) = **$4,290 more per year** — same FDIC insurance, same safety, just more earnings.
+    **Bottom line for your client:** Moving $100,000 from Chase (0.01% APY) to SoFi (4.30% APY) generates $4,290 more per year with the same FDIC protection and the same level of safety.
     """)
 
 st.divider()
@@ -171,14 +155,14 @@ with tab1:
 # ── Tab 2: Rate Timeline ──────────────────────────────────────────────────────
 with tab2:
     st.subheader("Rate Timeline: The Fed vs. Where Banks Stand Today")
-    st.markdown("""
-    The **black dashed line** shows how the Federal Reserve's benchmark rate changed over 25 years.
-    The **colored horizontal lines** show where each bank's deposit rate sits **right now**.
-
-    **How to read this:** During the 2022–2023 spike (the big jump on the right), the Fed raised rates from near 0% to over 5%.
-    Online banks followed — their lines are near the top. Traditional banks didn't budge — their lines hover near 0%.
-    The gap between a bank's line and the Fed line is money left on the table for savers.
-    """)
+    st.markdown(
+        "The black dashed line shows how the Federal Reserve's benchmark rate moved over 25 years. "
+        "The colored horizontal lines show where each bank's deposit rate sits right now. "
+        "This view matters because it reveals each bank's behavioral pattern. "
+        "A bank that followed the Fed on the way up will likely follow it back down when rates get cut. "
+        "A bank that never moved during the 2022 to 2023 hiking cycle will not move for your client in the future either. "
+        "The gap between a bank's line and the Fed line is the yield your client is leaving on the table every single year."
+    )
 
     bank_options = sorted(df["bank_name"].unique().tolist())
 
@@ -249,18 +233,22 @@ with tab2:
 
 # ── Tab 3: Pass-Through Analysis ─────────────────────────────────────────────
 with tab3:
-    st.subheader("Pass-Through Analysis: Who Shared Fed Hikes with Savers?")
+    st.subheader("Pass-Through Analysis: Who Actually Shared the Fed's Rate Hikes with Savers?")
+
+    st.markdown(
+        "When the Fed raises rates, banks earn more on every loan they make. The question is whether they share any of that with depositors. "
+        "Pass-through rate measures exactly that. It is the bank's current APY divided by the Fed funds rate, expressed as a percentage. "
+        "This chart is not just historical trivia. It tells you which banks have a track record of rewarding savers and which ones treat your client's deposit as free money. "
+        "A bank with 100 percent pass-through is giving savers the full Fed rate. A bank at 1 percent is keeping 99 percent of every rate hike as pure profit while your client earns almost nothing. "
+        "Use this to back up your recommendation with a reason, not just a number."
+    )
 
     st.markdown("""
-    **Pass-Through Rate** = (Bank's APY ÷ Fed Funds Rate) × 100
-
-    This tells you: *for every dollar of interest the Fed enables, how many cents does the bank actually give you?*
-
-    | Pass-Through | What it means for you |
+    | Pass-Through | What it means |
     |---|---|
-    | **80–100%+** | Bank is passing nearly all the Fed rate to you. **Great for savers.** |
-    | **10–50%** | Bank is sharing some, keeping some. Mediocre. |
-    | **0–5%** | Bank is keeping almost everything. **You're getting almost nothing.** |
+    | **80% or higher** | Bank consistently rewards savers. Strong choice for your client. |
+    | **10% to 50%** | Bank shares some but keeps most. Mediocre. |
+    | **Under 10%** | Bank is keeping almost everything as margin. Avoid for deposit accounts. |
     """)
 
     product_tab3 = st.radio(
