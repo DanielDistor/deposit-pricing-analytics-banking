@@ -79,6 +79,12 @@ st.caption(
     f"As of {fred_as_of}. Source: Federal Reserve Bank of St. Louis (FRED), series FEDFUNDS — "
     "federalreserve.gov / fred.stlouisfed.org"
 )
+st.info(
+    f"The Fed funds rate is the benchmark that sets the ceiling on what banks can earn. "
+    f"At {current_fed_rate:.2f}%, a bank that fully passes this rate to depositors would offer a {current_fed_rate:.2f}% APY. "
+    "In practice, most traditional banks pay a fraction of that — pocketing the difference as profit margin. "
+    "This dashboard measures exactly how much each bank shares with savers versus how much they keep."
+)
 
 # ── Terminology Glossary ──────────────────────────────────────────────────────
 with st.expander("📖 Key Terms — What does all this mean? (click to expand)"):
