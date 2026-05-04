@@ -43,11 +43,65 @@ FRED series loaded: Fed Funds Rate (monthly + daily), 3-Month/1-Year/2-Year/5-Ye
 
 ![Pipeline Diagram](docs/pipeline_diagram.png)
 
+```mermaid
+flowchart LR
+    FRED[FRED API\nFederal Reserve] -->|extract_fred.py\nGitHub Actions| RAW_FRED[(RAW.FRED_OBSERVATIONS\nSnowflake)]
+    BANKRATE[Bankrate\nFirecrawl Scrape] -->|extract_bankrate.py\nGitHub Actions| KB[knowledge/raw/\nMarkdown Files]
+    KB -->|parse_bankrate.py| RAW_BANK[(RAW.BANKRATE_RATES\nSnowflake)]
+    RAW_FRED --> STG_FRED[stg_fred_observations\ndbt Staging]
+    RAW_BANK --> STG_BANK[stg_bankrate_rates\ndbt Staging]
+    STG_FRED --> FACT[fact_deposit_rates\ndbt Mart]
+    STG_BANK --> FACT
+    STG_BANK --> DIM_BANK[dim_bank]
+    STG_BANK --> DIM_PROD[dim_product]
+    STG_FRED --> DIM_DATE[dim_date]
+    DIM_BANK --> FACT
+    DIM_PROD --> FACT
+    DIM_DATE --> FACT
+    FACT -->|Streamlit| DASH[Dashboard\nStreamlit Cloud]
+```
+
 ---
 
 ## ERD
 
 ![ERD](docs/erd.png)
+
+```mermaid
+erDiagram
+    FACT_DEPOSIT_RATES {
+        int bank_key FK
+        int product_key FK
+        date scrape_date FK
+        float apy_pct
+        float fed_funds_rate
+        float spread_pct
+        float passthrough_pct
+        string source_name
+    }
+    DIM_BANK {
+        int bank_key PK
+        string bank_name
+        string bank_type
+    }
+    DIM_PRODUCT {
+        int product_key PK
+        string product_name
+        int term_months
+        string product_display_name
+    }
+    DIM_DATE {
+        date date_day PK
+        int year
+        int month
+        int quarter
+        string fed_rate_cycle
+    }
+
+    FACT_DEPOSIT_RATES }o--|| DIM_BANK : "bank_key"
+    FACT_DEPOSIT_RATES }o--|| DIM_PRODUCT : "product_key"
+    FACT_DEPOSIT_RATES }o--|| DIM_DATE : "scrape_date"
+```
 
 ---
 
