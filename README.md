@@ -2,7 +2,7 @@
 
 > **Tracking how major U.S. banks respond to Federal Reserve rate changes — and which banks pass the most value to savers.**
 
-**Live Dashboard:** [STREAMLIT_DASHBOARD_URL]
+**Live Dashboard:** [deposit-pricing-analytics-banking.streamlit.app](https://deposit-pricing-analytics-banking.streamlit.app)
 
 ---
 
@@ -115,7 +115,7 @@ erDiagram
 
 ## Dashboard
 
-**Live URL:** [STREAMLIT_DASHBOARD_URL]
+**Live URL:** [deposit-pricing-analytics-banking.streamlit.app](https://deposit-pricing-analytics-banking.streamlit.app)
 
 Four tabs:
 1. **Current Rates** — Ranked table of all bank deposit rates with APY gradient
