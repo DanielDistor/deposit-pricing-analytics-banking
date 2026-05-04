@@ -301,10 +301,10 @@ with tab3:
 
 # ── Tab 4: Bank Recommender ───────────────────────────────────────────────────
 with tab4:
-    st.subheader("💡 Bank Recommender")
+    st.subheader("Bank Recommender")
     st.caption(
-        "Enter your deposit amount and product preference. "
-        "We'll rank the top banks by what you'd actually earn — in dollars."
+        "Select a deposit amount and product type to see which banks offer the highest returns "
+        "and how much that deposit grows over time."
     )
 
     col1, col2 = st.columns(2)
@@ -339,32 +339,33 @@ with tab4:
         rec_df = rec_df[rec_df["term_months"] == term_months]
 
     rec_df = rec_df.drop_duplicates("bank_name")
-    rec_df["annual_earnings"] = (rec_df["apy_pct"].astype(float) / 100 * deposit_amount).round(2)
     rec_df = rec_df.sort_values("apy_pct", ascending=False).head(5)
+
+    def future_value(principal, apy_pct, years):
+        return round(principal * (1 + apy_pct / 100) ** years, 2)
+
     rec_df["rationale"] = rec_df.apply(
         lambda r: (
-            f"Online bank — passes {float(r['passthrough_pct']):.0f}% of the Fed rate to savers. No fees, FDIC insured."
+            f"Online bank with {float(r['passthrough_pct']):.0f}% Fed rate pass-through. FDIC insured."
             if r["bank_type"] == "online"
-            else f"Traditional bank — {float(r['passthrough_pct']):.0f}% pass-through. Branch network, but low deposit rate."
+            else f"Traditional bank with {float(r['passthrough_pct']):.0f}% pass-through. Large branch network."
         ),
         axis=1,
     )
 
-    # Dollar comparison to Chase
-    chase_row = df[(df["bank_name"] == "JPMorgan Chase") & (df["product_name"] == product_rec)]
-    chase_apy = float(chase_row["apy_pct"].iloc[0]) if not chase_row.empty else 0.01
-    chase_earnings = round(chase_apy / 100 * deposit_amount, 2)
-
     st.subheader(f"Top Banks for ${deposit_amount:,.0f} Deposit")
     for idx, (_, row) in enumerate(rec_df.iterrows()):
         medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
-        extra = float(row["annual_earnings"]) - chase_earnings
+        apy = float(row["apy_pct"])
+        fv_1  = future_value(deposit_amount, apy, 1)
+        fv_5  = future_value(deposit_amount, apy, 5)
+        fv_10 = future_value(deposit_amount, apy, 10)
         with st.container():
             st.markdown(f"### {medals[idx]} {row['bank_name']}")
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("APY", f"{float(row['apy_pct']):.2f}%")
-            c2.metric("Annual Earnings", f"${float(row['annual_earnings']):,.2f}")
-            c3.metric("Pass-Through", f"{float(row['passthrough_pct']):.0f}%")
-            c4.metric("vs. Chase", f"+${extra:,.2f}/yr" if extra > 0 else "baseline")
+            c1.metric("APY", f"{apy:.2f}%")
+            c2.metric("Balance after 1 Year",  f"${fv_1:,.2f}")
+            c3.metric("Balance after 5 Years", f"${fv_5:,.2f}")
+            c4.metric("Balance after 10 Years", f"${fv_10:,.2f}")
             st.caption(row["rationale"])
             st.divider()
