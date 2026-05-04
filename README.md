@@ -41,8 +41,6 @@ FRED series loaded: Fed Funds Rate (monthly + daily), 3-Month/1-Year/2-Year/5-Ye
 
 ## Pipeline Diagram
 
-![Pipeline Diagram](docs/pipeline_diagram.png)
-
 ```mermaid
 flowchart LR
     FRED[FRED API\nFederal Reserve] -->|extract_fred.py\nGitHub Actions| RAW_FRED[(RAW.FRED_OBSERVATIONS\nSnowflake)]
@@ -61,11 +59,11 @@ flowchart LR
     FACT -->|Streamlit| DASH[Dashboard\nStreamlit Cloud]
 ```
 
+![Pipeline Diagram](docs/pipeline_diagram.png)
+
 ---
 
 ## ERD
-
-![ERD](docs/erd.png)
 
 ```mermaid
 erDiagram
@@ -102,6 +100,8 @@ erDiagram
     FACT_DEPOSIT_RATES }o--|| DIM_PRODUCT : "product_key"
     FACT_DEPOSIT_RATES }o--|| DIM_DATE : "scrape_date"
 ```
+
+![ERD](docs/erd.png)
 
 ---
 
