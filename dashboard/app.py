@@ -72,9 +72,13 @@ st.markdown(
 df = load_fact_data()
 fred = load_fred_history()
 current_fed_rate = float(df["fed_funds_rate"].iloc[0]) if not df.empty else 0.0
+fred_as_of = pd.to_datetime(fred["date_day"].iloc[-1]).strftime("%B %Y") if not fred.empty else ""
 
-st.metric("Current Fed Funds Rate", f"{current_fed_rate:.2f}%",
-          help="The benchmark interest rate set by the Federal Reserve. Banks use this as a floor when pricing loans and deposits.")
+st.metric("Current Fed Funds Rate", f"{current_fed_rate:.2f}%")
+st.caption(
+    f"As of {fred_as_of}. Source: Federal Reserve Bank of St. Louis (FRED), series FEDFUNDS — "
+    "federalreserve.gov / fred.stlouisfed.org"
+)
 
 # ── Terminology Glossary ──────────────────────────────────────────────────────
 with st.expander("📖 Key Terms — What does all this mean? (click to expand)"):
