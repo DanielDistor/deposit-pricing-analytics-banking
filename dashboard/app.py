@@ -421,19 +421,41 @@ with tab4:
 
     st.divider()
 
-    # ── Individual bank cards ─────────────────────────────────────────────────
+    # ── Individual bank cards — left: info, right: growth chart ──────────────
+    medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
     for idx, (_, row) in enumerate(rec_df.iterrows()):
-        medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
         apy = float(row["apy_pct"])
         fv_1  = future_value(deposit_amount, apy, 1)
         fv_5  = future_value(deposit_amount, apy, 5)
         fv_10 = future_value(deposit_amount, apy, 10)
-        with st.container():
+
+        left, right = st.columns([1, 1])
+
+        with left:
             st.markdown(f"### {medals[idx]} {row['bank_name']}")
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("APY", f"{apy:.2f}%")
-            c2.metric("Balance after 1 Year",  f"${fv_1:,.2f}")
-            c3.metric("Balance after 5 Years", f"${fv_5:,.2f}")
-            c4.metric("Balance after 10 Years", f"${fv_10:,.2f}")
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("APY", f"{apy:.2f}%")
+            m2.metric("1 Year",  f"${fv_1:,.0f}")
+            m3.metric("5 Years", f"${fv_5:,.0f}")
+            m4.metric("10 Years", f"${fv_10:,.0f}")
             st.caption(row["rationale"])
-            st.divider()
+
+        with right:
+            fig_card = go.Figure(go.Bar(
+                x=["1 Year", "5 Years", "10 Years"],
+                y=[fv_1, fv_5, fv_10],
+                marker_color=["#a8d8a8", "#4caf78", "#1a7a45"],
+                text=[f"${fv_1:,.0f}", f"${fv_5:,.0f}", f"${fv_10:,.0f}"],
+                textposition="outside",
+            ))
+            fig_card.update_layout(
+                height=220,
+                margin=dict(t=10, b=10, l=10, r=10),
+                yaxis_tickprefix="$",
+                yaxis_tickformat=",",
+                yaxis_range=[deposit_amount * 0.95, fv_10 * 1.08],
+                showlegend=False,
+            )
+            st.plotly_chart(fig_card, use_container_width=True)
+
+        st.divider()
