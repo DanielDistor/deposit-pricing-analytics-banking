@@ -30,6 +30,7 @@ Thumbs.db
 # IDE
 .cursor/
 .vscode/
+.claude/
 
 # dbt profiles
 dbt/profiles.yml
