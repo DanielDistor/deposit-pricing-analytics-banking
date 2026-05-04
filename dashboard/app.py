@@ -326,23 +326,28 @@ with tab4:
         "and how much that deposit grows over time."
     )
 
-    col1, col2 = st.columns(2)
-    with col1:
-        deposit_amount = st.slider(
-            "Deposit amount ($)",
-            min_value=1_000,
-            max_value=1_000_000,
-            value=50_000,
-            step=1_000,
-            format="$%d",
-        )
-    with col2:
-        product_rec = st.radio(
-            "Product type",
-            options=["savings", "cd"],
-            format_func=lambda x: "Savings Account" if x == "savings" else "Certificate of Deposit (CD)",
-            key="tab4_product",
-        )
+    with st.container(border=True):
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            deposit_amount = st.slider(
+                "How much are you depositing?",
+                min_value=1_000,
+                max_value=1_000_000,
+                value=50_000,
+                step=1_000,
+                format="$%d",
+            )
+            st.markdown(
+                f"<p style='font-size:28px; font-weight:700; margin-top:-8px;'>${deposit_amount:,.0f}</p>",
+                unsafe_allow_html=True,
+            )
+        with col2:
+            product_rec = st.radio(
+                "Product type",
+                options=["savings", "cd"],
+                format_func=lambda x: "Savings Account" if x == "savings" else "CD",
+                key="tab4_product",
+            )
 
     term_months = None
     if product_rec == "cd":
