@@ -107,7 +107,7 @@ terms = [
     ("APY (Annual Percentage Yield)",
      "The annual interest rate a deposit earns. A 4.00% APY on $100,000 generates $4,000 per year."),
     ("Fed Funds Rate",
-     "The Fed's benchmark rate. Banks earn more when it rises but are not required to pass any of that to depositors."),
+     "The Fed's benchmark rate. It directly affects the APY banks offer on deposits. The APY is what determines how much a deposit grows over any given number of years."),
     ("Pass-Through Rate (%)",
      "How much of the Fed's rate a bank shares with savers. 100% means full pass-through. Under 10% means the bank keeps almost everything."),
     ("Spread (%)",
@@ -144,31 +144,23 @@ if not terms_confirmed:
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📊 Current Rates",
-    "💰 What Your Money Earns",
-    "⚡ Pass-Through Analysis",
-    "💡 Bank Recommender",
+    "📊 Descriptive: Which Bank Pays the Most?",
+    "💰 Descriptive: How Much Will I Earn?",
+    "⚡ Diagnostic: Why Do Some Banks Pay More?",
+    "💡 Where Should I Deposit My Money?",
 ])
 
 
 # ── Tab 1: Current Rates ──────────────────────────────────────────────────────
 with tab1:
-    st.subheader("Current Deposit Rates: All Banks")
+    st.subheader("Descriptive Analytics: Current Deposit Rates Across All Banks")
     st.caption(
-        "A snapshot of today's deposit rates across all banks, ranked by APY. "
-        "Green = higher APY (better for savers). Red = lower APY (bank keeping more as profit)."
+        "Descriptive analytics answers: what does the data show right now? "
+        "This is a ranked snapshot of every bank's current APY. "
+        "Green = higher APY (better for savers). Red = lower APY (bank keeps more as profit)."
     )
 
-    product_filter = st.selectbox(
-        "Filter by product",
-        options=["All", "savings", "cd"],
-        format_func=lambda x: "All Products" if x == "All" else ("Savings Accounts" if x == "savings" else "CDs"),
-        key="tab1_product",
-    )
-
-    display_df = df.copy()
-    if product_filter != "All":
-        display_df = display_df[display_df["product_name"] == product_filter]
+    display_df = df[df["product_name"] == "savings"].copy()
 
     display_df = display_df[[
         "bank_name", "bank_type", "product_display_name",
@@ -206,10 +198,7 @@ with tab1:
     )
 
     st.subheader("APY Ranked: Best to Worst")
-    chart_src = df.copy()
-    if product_filter != "All":
-        chart_src = chart_src[chart_src["product_name"] == product_filter]
-    chart_src = chart_src.drop_duplicates("bank_name").copy()
+    chart_src = df[df["product_name"] == "savings"].drop_duplicates("bank_name").copy()
     chart_src["apy_pct"] = chart_src["apy_pct"].astype(float).round(2)
     chart_src = chart_src.sort_values("apy_pct", ascending=True)
 
@@ -219,29 +208,36 @@ with tab1:
         y="bank_name",
         orientation="h",
         color="bank_type",
-        color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
+        color_discrete_map={"online": "#3B82F6", "traditional": "#94A3B8"},
         text=chart_src["apy_pct"].apply(lambda v: f"{v:.2f}%"),
         labels={"apy_pct": "APY (%)", "bank_name": "Bank", "bank_type": "Type"},
     )
     fig_rank.add_vline(
-        x=current_fed_rate, line_dash="dash", line_color="#333", line_width=2,
+        x=current_fed_rate, line_dash="dash", line_color="white", line_width=2,
         annotation_text=f"Fed Rate ({current_fed_rate:.2f}%)",
-        annotation_position="top right",
+        annotation_position="top left",
+        annotation_font_color="white",
+        annotation_font_size=12,
     )
-    fig_rank.update_traces(textposition="outside")
+    fig_rank.update_traces(textposition="outside", textfont=dict(color="#111111", size=11))
     fig_rank.update_layout(
         height=max(400, len(chart_src) * 28),
         xaxis_range=[0, 5.5],
         xaxis_title="APY (%)",
         showlegend=True,
         margin=dict(r=20),
+        yaxis=dict(categoryorder="total ascending"),
     )
     st.plotly_chart(fig_rank, use_container_width=True)
 
 
 # ── Tab 2: What Your Money Earns ─────────────────────────────────────────────
 with tab2:
-    st.subheader("What Does $10,000 Actually Earn at Each Bank?")
+    st.subheader("Descriptive Analytics: What Does $10,000 Actually Earn at Each Bank?")
+    st.caption(
+        "Descriptive analytics answers: what does the data show right now? "
+        "This translates current APYs into real dollar earnings on the same deposit across every bank."
+    )
     st.markdown(
         "Same deposit. Same year. Wildly different results depending on where you put it. "
         "These are real numbers based on each bank's current savings APY."
@@ -252,37 +248,77 @@ with tab2:
     savings_df["annual_earnings"] = (savings_df["apy_pct"] / 100 * 10_000).round(2)
     savings_df = savings_df.sort_values("annual_earnings", ascending=True)
 
-    fig = px.bar(
-        savings_df,
-        x="annual_earnings",
-        y="bank_name",
-        orientation="h",
-        color="bank_type",
-        color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
-        labels={"annual_earnings": "Annual Earnings on $10,000", "bank_name": "Bank", "bank_type": "Type"},
-        text=savings_df["annual_earnings"].apply(lambda v: f"${v:,.0f}/yr"),
-    )
-    fig.update_traces(textposition="outside")
+    fig = go.Figure()
+    for _, row in savings_df.iterrows():
+        color = "#3B82F6" if row["bank_type"] == "online" else "#94A3B8"
+        fig.add_trace(go.Scatter(
+            x=[0, row["annual_earnings"]],
+            y=[row["bank_name"], row["bank_name"]],
+            mode="lines",
+            line=dict(color=color, width=2),
+            showlegend=False,
+            hoverinfo="skip",
+        ))
+    fig.add_trace(go.Scatter(
+        x=savings_df["annual_earnings"],
+        y=savings_df["bank_name"],
+        mode="markers+text",
+        marker=dict(
+            color=savings_df["bank_type"].map({"online": "#3B82F6", "traditional": "#94A3B8"}),
+            size=12,
+        ),
+        text=savings_df["annual_earnings"].apply(lambda v: f"  ${v:,.0f}/yr"),
+        textposition="middle right",
+        textfont=dict(size=11, color="#111111"),
+        hovertemplate="%{y}: $%{x:,.0f}/yr<extra></extra>",
+        showlegend=False,
+    ))
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None], mode="markers",
+        marker=dict(color="#3B82F6", size=10),
+        name="Online"
+    ))
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None], mode="markers",
+        marker=dict(color="#94A3B8", size=10),
+        name="Traditional"
+    ))
     fig.update_layout(
         height=max(420, len(savings_df) * 28),
-        showlegend=True,
         xaxis_tickprefix="$",
         xaxis_title="Annual Earnings on $10,000 Deposit",
+        xaxis_range=[0, savings_df["annual_earnings"].max() * 1.25],
+        yaxis=dict(categoryorder="total ascending"),
+        showlegend=True,
+        margin=dict(r=120),
     )
     st.plotly_chart(fig, use_container_width=True)
 
     best = savings_df.iloc[-1]
     worst = savings_df[savings_df["bank_type"] == "traditional"].iloc[0]
-    gap = best["annual_earnings"] - worst["annual_earnings"]
-    st.info(
-        f"Keeping $10,000 at {worst['bank_name']} instead of {best['bank_name']} costs you "
-        f"${gap:,.0f} every single year. On $100,000 that is ${gap*10:,.0f} lost annually."
+    st.markdown(
+        f"""
+        <div style="
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 24px 32px;
+            margin: 16px 0;
+        ">
+            <p style="color: #a0aec0; font-size: 13px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.08em;">Key Takeaway</p>
+            <p style="color: #ffffff; font-size: 20px; font-weight: 600; margin: 0; line-height: 1.4;">
+                Given the current Fed rate of {current_fed_rate:.2f}%, clients who choose the highest-yielding bank
+                ({best['bank_name']}) earn <span style="color: #68d391;">${best['annual_earnings']:,.0f} annually</span>
+                on a $10,000 deposit.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
 # ── Tab 3: Pass-Through Analysis ─────────────────────────────────────────────
 with tab3:
-    st.subheader("Pass-Through Analysis: Who Actually Shared the Fed's Rate Hikes with Savers?")
+    st.subheader("Diagnostic Analytics: Why Do Some Banks Pay So Much More Than Others?")
 
     st.markdown(
         "When the Fed raises rates, banks earn more on every loan they make. The question is whether they share any of that with depositors. "
@@ -300,61 +336,142 @@ with tab3:
     | **Under 10%** | Bank is keeping almost everything as margin. Avoid for deposit accounts. |
     """)
 
-    product_tab3 = st.radio(
-        "Product type",
-        options=["savings", "cd"],
-        format_func=lambda x: "Savings Accounts" if x == "savings" else "CDs",
-        horizontal=True,
-        key="tab3_product",
-    )
-
-    pt_df = df[df["product_name"] == product_tab3].drop_duplicates(
-        subset=["bank_name", "product_name", "term_months"]
+    pt_df = df[df["product_name"] == "savings"].drop_duplicates(
+        subset=["bank_name", "product_name"]
     ).sort_values("passthrough_pct", ascending=True)
 
-    fig2 = px.bar(
-        pt_df,
-        x="passthrough_pct",
-        y="bank_name",
-        orientation="h",
-        color="bank_type",
-        color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
-        labels={
-            "passthrough_pct": "Pass-Through (%)",
-            "bank_name": "Bank",
-            "bank_type": "Type",
-        },
-        title=f"Pass-Through Rate by Bank — {'Savings Accounts' if product_tab3 == 'savings' else 'CDs'}",
-        hover_data={"apy_pct": ":.2f"},
+    fig2 = go.Figure()
+
+    # colored zone backgrounds
+    fig2.add_shape(type="rect", x0=0, x1=10, y0=-0.5, y1=len(pt_df)-0.5,
+                   fillcolor="rgba(231,76,60,0.12)", line_width=0)
+    fig2.add_shape(type="rect", x0=10, x1=80, y0=-0.5, y1=len(pt_df)-0.5,
+                   fillcolor="rgba(241,196,15,0.10)", line_width=0)
+    fig2.add_shape(type="rect", x0=80, x1=130, y0=-0.5, y1=len(pt_df)-0.5,
+                   fillcolor="rgba(59,130,246,0.12)", line_width=0)
+
+    # zone labels
+    for x, label in [(5, "Low"), (45, "Medium"), (115, "High")]:
+        fig2.add_annotation(x=x, y=len(pt_df)-0.1, text=label,
+                            showarrow=False, font=dict(size=11, color="#aaaaaa"),
+                            xanchor="center")
+
+    # lollipop lines
+    for i, (_, row) in enumerate(pt_df.iterrows()):
+        color = "#3B82F6" if row["bank_type"] == "online" else "#94A3B8"
+        fig2.add_shape(type="line", x0=0, x1=float(row["passthrough_pct"]),
+                       y0=i, y1=i, line=dict(color=color, width=2))
+
+    # dots
+    fig2.add_trace(go.Scatter(
+        x=pt_df["passthrough_pct"].astype(float),
+        y=pt_df["bank_name"],
+        mode="markers+text",
+        marker=dict(
+            color=pt_df["bank_type"].map({"online": "#3B82F6", "traditional": "#94A3B8"}),
+            size=14,
+        ),
+        text=pt_df["passthrough_pct"].astype(float).apply(lambda v: f"  {v:.0f}%"),
+        textposition="middle right",
+        textfont=dict(size=11, color="#111111"),
+        hovertemplate="%{y}: %{x:.1f}% pass-through<extra></extra>",
+        showlegend=False,
+    ))
+
+    # legend
+    for name, color in [("Online", "#3B82F6"), ("Traditional", "#94A3B8")]:
+        fig2.add_trace(go.Scatter(
+            x=[None], y=[None], mode="markers",
+            marker=dict(color=color, size=10), name=name
+        ))
+
+    fig2.add_vline(x=100, line_dash="dot", line_color="#555", line_width=1.5,
+                   annotation_text="100% = full Fed rate",
+                   annotation_position="bottom right",
+                   annotation_font_size=11)
+
+    fig2.update_layout(
+        height=max(480, len(pt_df) * 32),
+        xaxis=dict(title="Pass-Through (%)", range=[0, 130]),
+        yaxis=dict(categoryorder="total ascending"),
+        showlegend=True,
+        margin=dict(r=60),
     )
-    fig2.add_vline(x=100, line_dash="dot", line_color="gray",
-                   annotation_text="100% = full Fed rate", annotation_position="top right")
-    fig2.update_layout(height=max(420, len(pt_df) * 32))
     st.plotly_chart(fig2, use_container_width=True)
 
-    col_good, col_bad = st.columns(2)
-    col_good.success(
-        "**Green bars (online banks) = high pass-through.**\n\n"
-        "SoFi, Marcus, Ally are passing 100%+ of the Fed rate to savers. "
-        "This means when the Fed raised rates, these banks raised *your* rate too."
-    )
-    col_bad.error(
-        "**Red bars (traditional banks) = low pass-through.**\n\n"
-        "Chase, BofA, and Wells Fargo pass through under 1% on savings. "
-        "They kept ~99% of the Fed's rate hike as extra profit. You earned almost nothing extra."
+    st.subheader("Pass-Through Rate: All Banks")
+    table_df = pt_df[["bank_name", "bank_type", "apy_pct", "passthrough_pct"]].copy()
+    table_df["bank_type"] = table_df["bank_type"].str.capitalize()
+    table_df["apy_pct"] = table_df["apy_pct"].astype(float).round(2)
+    table_df["passthrough_pct"] = table_df["passthrough_pct"].astype(float).round(1)
+    table_df = table_df.sort_values("passthrough_pct", ascending=False).rename(columns={
+        "bank_name": "Bank",
+        "bank_type": "Type",
+        "apy_pct": "APY (%)",
+        "passthrough_pct": "Pass-Through (%)",
+    })
+    def _highlight_extremes(df):
+        styles = pd.DataFrame("", index=df.index, columns=df.columns)
+        max_val = df["Pass-Through (%)"].max()
+        min_val = df["Pass-Through (%)"].min()
+        for col in df.columns:
+            styles.loc[df["Pass-Through (%)"] == max_val, col] = "background-color: rgba(34,197,94,0.3);"
+            styles.loc[df["Pass-Through (%)"] == min_val, col] = "background-color: rgba(239,68,68,0.3);"
+        return styles
+
+    st.dataframe(
+        table_df.style.apply(_highlight_extremes, axis=None).format({"APY (%)": "{:.2f}%", "Pass-Through (%)": "{:.1f}%"}),
+        use_container_width=True,
+        hide_index=True,
     )
 
-    st.info(
-        "**Dollar impact:** On a $100,000 deposit — SoFi earns you ~$4,300/year. "
-        "Chase earns you ~$10/year. That $4,290 difference is the cost of staying at a traditional bank."
-    )
+    top_banks = pt_df[pt_df["passthrough_pct"] >= 80].sort_values("passthrough_pct", ascending=False)
+    bottom_banks = pt_df[pt_df["passthrough_pct"] < 10].sort_values("passthrough_pct")
+
+    col_good, col_bad = st.columns(2)
+
+    if not top_banks.empty:
+        top_names = ", ".join(top_banks["bank_name"].head(3).tolist())
+        top_avg = top_banks["passthrough_pct"].mean()
+        col_good.success(
+            f"**High pass-through (80%+):** {top_names}\n\n"
+            f"These banks average {top_avg:.0f}% pass-through, meaning they share most of the Fed rate with depositors. "
+            "When the Fed raises rates, savers at these banks see their APY move too."
+        )
+
+    if not bottom_banks.empty:
+        bot_names = ", ".join(bottom_banks["bank_name"].head(3).tolist())
+        bot_avg = bottom_banks["passthrough_pct"].mean()
+        col_bad.error(
+            f"**Low pass-through (under 10%):** {bot_names}\n\n"
+            f"These banks average {bot_avg:.1f}% pass-through. "
+            "Nearly the entire Fed rate increase goes to the bank's bottom line, not the depositor."
+        )
+
+    if not top_banks.empty and not bottom_banks.empty:
+        best = top_banks.iloc[0]
+        worst = bottom_banks.iloc[0]
+        best_apy = float(best["apy_pct"])
+        worst_apy = float(worst["apy_pct"])
+        best_earn = best_apy / 100 * 10_000
+        worst_earn = worst_apy / 100 * 10_000
+        gap = best_earn - worst_earn
+        st.info(
+            f"Dollar impact on \$10,000: {best['bank_name']} ({best_apy:.2f}% APY) earns \${best_earn:,.0f}/yr. "
+            f"{worst['bank_name']} ({worst_apy:.2f}% APY) earns \${worst_earn:,.0f}/yr. "
+            f"That is a \${gap:,.0f}/year difference on the same deposit."
+        )
 
 
 # ── Tab 4: Bank Recommender ───────────────────────────────────────────────────
 with tab4:
     st.subheader("Bank Recommender")
+    st.info(
+        "The Fed funds rate directly affects the APY banks offer on deposits. "
+        "The APY is what determines how much a deposit grows over any given number of years."
+    )
     st.caption(
-        "Select a deposit amount and product type to see which banks offer the highest returns "
+        "Select a deposit amount to see which savings accounts offer the highest returns "
         "and how much that deposit grows over time."
     )
 
@@ -369,49 +486,28 @@ with tab4:
         st.session_state.deposit_amount = max(1_000, min(1_000_000, val))
 
     with st.container(border=True):
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.slider(
-                "How much are you depositing?",
-                min_value=1_000,
-                max_value=1_000_000,
-                value=st.session_state.deposit_amount,
-                step=1_000,
-                format="$%d",
-                key="_dep_slider",
-                on_change=_sync_slider,
-            )
-            st.number_input(
-                "Or type an amount",
-                min_value=1_000,
-                max_value=1_000_000,
-                value=st.session_state.deposit_amount,
-                step=1_000,
-                key="_dep_input",
-                on_change=_sync_input,
-            )
-        with col2:
-            product_rec = st.radio(
-                "Product type",
-                options=["savings", "cd"],
-                format_func=lambda x: "Savings Account" if x == "savings" else "CD",
-                key="tab4_product",
-            )
-
+        st.slider(
+            "How much are you depositing?",
+            min_value=1_000,
+            max_value=1_000_000,
+            value=st.session_state.deposit_amount,
+            step=1_000,
+            format="$%d",
+            key="_dep_slider",
+            on_change=_sync_slider,
+        )
+        st.number_input(
+            "Or type an amount",
+            min_value=1_000,
+            max_value=1_000_000,
+            value=st.session_state.deposit_amount,
+            step=1_000,
+            key="_dep_input",
+            on_change=_sync_input,
+        )
     deposit_amount = st.session_state.deposit_amount
 
-    term_months = None
-    if product_rec == "cd":
-        available_terms = sorted(df[df["product_name"] == "cd"]["term_months"].dropna().unique().astype(int).tolist())
-        term_label_map = {6: "6-Month CD", 12: "1-Year CD", 36: "3-Year CD", 60: "5-Year CD"}
-        term_options = [term_label_map.get(t, f"{t}-Month CD") for t in available_terms]
-        term_label = st.selectbox("CD term", options=term_options)
-        reverse_map = {v: k for k, v in term_label_map.items()}
-        term_months = reverse_map.get(term_label, available_terms[0])
-
-    rec_df = df[df["product_name"] == product_rec].copy()
-    if term_months:
-        rec_df = rec_df[rec_df["term_months"] == term_months]
+    rec_df = df[df["product_name"] == "savings"].copy()
 
     rec_df = rec_df.drop_duplicates("bank_name")
     rec_df = rec_df.sort_values("apy_pct", ascending=False).head(5)
