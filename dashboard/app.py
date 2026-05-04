@@ -193,7 +193,7 @@ with tab1:
                 "APY (%)",
                 format="%.2f%%",
                 min_value=0,
-                max_value=float(display_df["APY (%)"].max()),
+                max_value=6.0,
             ),
             "Pass-Through (%)": st.column_config.NumberColumn(
                 "Pass-Through (%)",
