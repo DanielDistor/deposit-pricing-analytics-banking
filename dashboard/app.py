@@ -144,7 +144,7 @@ if not terms_confirmed:
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Current Rates",
-    "📈 Rate History",
+    "📈 Banks vs. the Fed",
     "⚡ Pass-Through Analysis",
     "💡 Bank Recommender",
 ])
@@ -207,7 +207,7 @@ with tab1:
 
 # ── Tab 2: Rate History ───────────────────────────────────────────────────────
 with tab2:
-    st.subheader("Rate History: Where Each Bank Stands vs. the Fed")
+    st.subheader("Banks vs. the Fed: Who's Paying Savers?")
     st.markdown(
         "The Fed currently pays banks 3.64% to hold reserves overnight. "
         "The bars below show what each bank is actually paying savers on a savings account. "
