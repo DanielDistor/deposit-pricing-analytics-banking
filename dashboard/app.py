@@ -81,8 +81,8 @@ st.markdown(
         border-radius: 12px;
         padding: 24px 32px;
         margin: 12px 0 4px 0;
-        display: inline-block;
-        min-width: 220px;
+        display: block;
+        width: 100%;
     ">
         <p style="color: #a0aec0; font-size: 13px; margin: 0 0 4px 0; letter-spacing: 0.08em; text-transform: uppercase;">Current Fed Funds Rate</p>
         <p style="color: #ffffff; font-size: 48px; font-weight: 700; margin: 0; line-height: 1;">{current_fed_rate:.2f}%</p>
