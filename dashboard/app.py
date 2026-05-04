@@ -74,10 +74,22 @@ fred = load_fred_history()
 current_fed_rate = float(df["fed_funds_rate"].iloc[0]) if not df.empty else 0.0
 fred_as_of = pd.to_datetime(fred["date_day"].iloc[-1]).strftime("%B %Y") if not fred.empty else ""
 
-st.metric("Current Fed Funds Rate", f"{current_fed_rate:.2f}%")
-st.caption(
-    f"As of {fred_as_of}. Source: Federal Reserve Bank of St. Louis (FRED), series FEDFUNDS. "
-    "federalreserve.gov / fred.stlouisfed.org"
+st.markdown(
+    f"""
+    <div style="
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 12px;
+        padding: 24px 32px;
+        margin: 12px 0 4px 0;
+        display: inline-block;
+        min-width: 220px;
+    ">
+        <p style="color: #a0aec0; font-size: 13px; margin: 0 0 4px 0; letter-spacing: 0.08em; text-transform: uppercase;">Current Fed Funds Rate</p>
+        <p style="color: #ffffff; font-size: 48px; font-weight: 700; margin: 0; line-height: 1;">{current_fed_rate:.2f}%</p>
+        <p style="color: #718096; font-size: 11px; margin: 8px 0 0 0;">As of {fred_as_of} &nbsp;·&nbsp; Source: FRED, Federal Reserve Bank of St. Louis</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 st.info(
     f"The Fed funds rate is the benchmark that sets the ceiling on what banks can earn. "
@@ -105,13 +117,22 @@ terms = [
      "Savings APYs are variable and move with the Fed. CD rates lock in at the time of deposit and hold for the full term."),
 ]
 
-col_a, col_b = st.columns(2)
-for i, (term, definition) in enumerate(terms):
-    col = col_a if i % 2 == 0 else col_b
-    with col:
-        with st.container(border=True):
-            st.markdown(f"**{term}**")
-            st.caption(definition)
+cards_html = "<div style='display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;'>"
+for term, definition in terms:
+    cards_html += f"""
+    <div style="
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    ">
+        <p style="font-weight: 600; font-size: 14px; margin: 0 0 6px 0;">{term}</p>
+        <p style="font-size: 13px; color: #718096; margin: 0; line-height: 1.5;">{definition}</p>
+    </div>"""
+cards_html += "</div>"
+st.markdown(cards_html, unsafe_allow_html=True)
 
 st.divider()
 
