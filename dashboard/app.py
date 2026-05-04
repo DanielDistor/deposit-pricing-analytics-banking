@@ -152,7 +152,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 # ── Tab 1: Current Rates ──────────────────────────────────────────────────────
 with tab1:
-    st.subheader("Current Deposit Rates — All Banks")
+    st.subheader("Current Deposit Rates: All Banks")
     st.caption(
         "A snapshot of today's deposit rates across all banks, ranked by APY. "
         "Green = higher APY (better for savers). Red = lower APY (bank keeping more as profit)."
@@ -184,24 +184,26 @@ with tab1:
         "passthrough_pct": "Pass-Through (%)",
     })
 
-    def _color_apy(series):
-        lo, hi = series.min(), series.max()
-        out = []
-        for v in series:
-            ratio = (v - lo) / (hi - lo) if hi != lo else 0.5
-            r = int(220 * (1 - ratio))
-            g = int(180 * ratio + 40)
-            out.append(f"background-color: rgb({r},{g},60)")
-        return out
-
     st.dataframe(
-        display_df.style.apply(_color_apy, subset=["APY (%)"]),
+        display_df,
         use_container_width=True,
         hide_index=True,
+        column_config={
+            "APY (%)": st.column_config.ProgressColumn(
+                "APY (%)",
+                format="%.2f%%",
+                min_value=0,
+                max_value=float(display_df["APY (%)"].max()),
+            ),
+            "Pass-Through (%)": st.column_config.NumberColumn(
+                "Pass-Through (%)",
+                format="%.1f%%",
+            ),
+        },
     )
     st.caption(
         "Banks at the top are paying depositors the most. "
-        "Pass-Through shows how much of the Fed's rate each bank shares with savers — higher is better."
+        "Pass-Through shows how much of the Fed's rate each bank shares with savers, higher is better."
     )
 
 
