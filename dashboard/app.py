@@ -204,6 +204,39 @@ with tab1:
         "Pass-Through shows how much of the Fed's rate each bank shares with savers, higher is better."
     )
 
+    st.subheader("APY Ranked: Best to Worst")
+    chart_src = df.copy()
+    if product_filter != "All":
+        chart_src = chart_src[chart_src["product_name"] == product_filter]
+    chart_src = chart_src.drop_duplicates("bank_name").copy()
+    chart_src["apy_pct"] = chart_src["apy_pct"].astype(float).round(2)
+    chart_src = chart_src.sort_values("apy_pct", ascending=True)
+
+    fig_rank = px.bar(
+        chart_src,
+        x="apy_pct",
+        y="bank_name",
+        orientation="h",
+        color="bank_type",
+        color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
+        text=chart_src["apy_pct"].apply(lambda v: f"{v:.2f}%"),
+        labels={"apy_pct": "APY (%)", "bank_name": "Bank", "bank_type": "Type"},
+    )
+    fig_rank.add_vline(
+        x=current_fed_rate, line_dash="dash", line_color="#333", line_width=2,
+        annotation_text=f"Fed Rate ({current_fed_rate:.2f}%)",
+        annotation_position="top right",
+    )
+    fig_rank.update_traces(textposition="outside")
+    fig_rank.update_layout(
+        height=max(400, len(chart_src) * 28),
+        xaxis_range=[0, 5.5],
+        xaxis_title="APY (%)",
+        showlegend=True,
+        margin=dict(r=20),
+    )
+    st.plotly_chart(fig_rank, use_container_width=True)
+
 
 # ── Tab 2: What Your Money Earns ─────────────────────────────────────────────
 with tab2:
