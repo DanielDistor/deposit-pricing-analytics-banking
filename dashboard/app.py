@@ -358,20 +358,37 @@ with tab4:
         "and how much that deposit grows over time."
     )
 
+    if "deposit_amount" not in st.session_state:
+        st.session_state.deposit_amount = 50_000
+
+    def _sync_slider():
+        st.session_state.deposit_amount = st.session_state._dep_slider
+
+    def _sync_input():
+        val = st.session_state._dep_input
+        st.session_state.deposit_amount = max(1_000, min(1_000_000, val))
+
     with st.container(border=True):
         col1, col2 = st.columns([3, 1])
         with col1:
-            deposit_amount = st.slider(
+            st.slider(
                 "How much are you depositing?",
                 min_value=1_000,
                 max_value=1_000_000,
-                value=50_000,
+                value=st.session_state.deposit_amount,
                 step=1_000,
                 format="$%d",
+                key="_dep_slider",
+                on_change=_sync_slider,
             )
-            st.markdown(
-                f"<p style='font-size:28px; font-weight:700; margin-top:-8px;'>${deposit_amount:,.0f}</p>",
-                unsafe_allow_html=True,
+            st.number_input(
+                "Or type an amount",
+                min_value=1_000,
+                max_value=1_000_000,
+                value=st.session_state.deposit_amount,
+                step=1_000,
+                key="_dep_input",
+                on_change=_sync_input,
             )
         with col2:
             product_rec = st.radio(
@@ -380,6 +397,8 @@ with tab4:
                 format_func=lambda x: "Savings Account" if x == "savings" else "CD",
                 key="tab4_product",
             )
+
+    deposit_amount = st.session_state.deposit_amount
 
     term_months = None
     if product_rec == "cd":
