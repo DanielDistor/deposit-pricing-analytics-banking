@@ -134,14 +134,16 @@ with tab1:
 
     display_df = display_df[[
         "bank_name", "bank_type", "product_display_name",
-        "apy_pct", "fed_funds_rate", "spread_pct", "passthrough_pct"
-    ]].rename(columns={
+        "apy_pct", "passthrough_pct"
+    ]].copy()
+    display_df["bank_type"] = display_df["bank_type"].str.capitalize()
+    display_df["apy_pct"] = display_df["apy_pct"].astype(float).round(2)
+    display_df["passthrough_pct"] = display_df["passthrough_pct"].astype(float).round(1)
+    display_df = display_df.rename(columns={
         "bank_name": "Bank",
         "bank_type": "Type",
         "product_display_name": "Product",
         "apy_pct": "APY (%)",
-        "fed_funds_rate": "Fed Rate (%)",
-        "spread_pct": "Spread (%)",
         "passthrough_pct": "Pass-Through (%)",
     })
 
@@ -150,8 +152,10 @@ with tab1:
         use_container_width=True,
         hide_index=True,
     )
-    st.info("**What to look for:** Banks at the top of this list are paying you the most. "
-            "The Spread column shows how much of the Fed rate the bank is keeping as profit instead of paying you.")
+    st.caption(
+        "Banks at the top are paying depositors the most. "
+        "Pass-Through shows how much of the Fed's rate each bank shares with savers — higher is better."
+    )
 
 
 # ── Tab 2: Rate Timeline ──────────────────────────────────────────────────────
