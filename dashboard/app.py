@@ -169,6 +169,35 @@ with tab1:
     if product_filter != "All":
         display_df = display_df[display_df["product_name"] == product_filter]
 
+    chart_df = display_df[["bank_name", "bank_type", "product_display_name", "apy_pct"]].copy()
+    chart_df["apy_pct"] = chart_df["apy_pct"].astype(float).round(2)
+    chart_df = chart_df.drop_duplicates(["bank_name", "bank_type"]).sort_values("apy_pct", ascending=True)
+
+    fig_rates = px.bar(
+        chart_df,
+        x="apy_pct",
+        y="bank_name",
+        orientation="h",
+        color="bank_type",
+        color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
+        text=chart_df["apy_pct"].apply(lambda v: f"{v:.2f}%"),
+        labels={"apy_pct": "APY (%)", "bank_name": "Bank", "bank_type": "Type"},
+    )
+    fig_rates.add_vline(
+        x=current_fed_rate, line_dash="dash", line_color="#333", line_width=2,
+        annotation_text=f"Fed Rate ({current_fed_rate:.2f}%)",
+        annotation_position="top",
+    )
+    fig_rates.update_traces(textposition="outside")
+    fig_rates.update_layout(
+        height=max(380, len(chart_df) * 26),
+        xaxis_range=[0, 5.5],
+        xaxis_title="APY (%)",
+        showlegend=True,
+        margin=dict(r=20),
+    )
+    st.plotly_chart(fig_rates, use_container_width=True)
+
     display_df = display_df[[
         "bank_name", "bank_type", "product_display_name",
         "apy_pct", "passthrough_pct"
@@ -184,21 +213,8 @@ with tab1:
         "passthrough_pct": "Pass-Through (%)",
     })
 
-    def _color_apy(series):
-        lo, hi = 0.0, 5.5
-        out = []
-        for v in series:
-            ratio = max(0, min(1, (v - lo) / (hi - lo)))
-            r = int(220 * (1 - ratio))
-            g = int(160 * ratio + 60)
-            out.append(f"background-color: rgba({r},{g},70,0.55); color: #111;")
-        return out
-
-    st.dataframe(
-        display_df.style.apply(_color_apy, subset=["APY (%)"]).format({"APY (%)": "{:.2f}%", "Pass-Through (%)": "{:.1f}%"}),
-        use_container_width=True,
-        hide_index=True,
-    )
+    with st.expander("View full data table"):
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
     st.caption(
         "Banks at the top are paying depositors the most. "
         "Pass-Through shows how much of the Fed's rate each bank shares with savers, higher is better."
