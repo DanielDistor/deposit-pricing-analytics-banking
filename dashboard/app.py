@@ -144,7 +144,7 @@ if not terms_confirmed:
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Current Rates",
-    "📈 Banks vs. the Fed",
+    "💰 What Your Money Earns",
     "⚡ Pass-Through Analysis",
     "💡 Bank Recommender",
 ])
@@ -205,50 +205,44 @@ with tab1:
     )
 
 
-# ── Tab 2: Rate History ───────────────────────────────────────────────────────
+# ── Tab 2: What Your Money Earns ─────────────────────────────────────────────
 with tab2:
-    st.subheader("Banks vs. the Fed: Who's Paying Savers?")
+    st.subheader("What Does $10,000 Actually Earn at Each Bank?")
     st.markdown(
-        "The Fed currently pays banks 3.64% to hold reserves overnight. "
-        "The bars below show what each bank is actually paying savers on a savings account. "
-        "The gap between the Fed rate and a bank's bar is money the bank is keeping instead of passing to depositors."
+        "Same deposit. Same year. Wildly different results depending on where you put it. "
+        "These are real numbers based on each bank's current savings APY."
     )
 
     savings_df = df[df["product_name"] == "savings"].drop_duplicates("bank_name").copy()
     savings_df["apy_pct"] = savings_df["apy_pct"].astype(float)
-    savings_df = savings_df.sort_values("apy_pct", ascending=False)
+    savings_df["annual_earnings"] = (savings_df["apy_pct"] / 100 * 10_000).round(2)
+    savings_df = savings_df.sort_values("annual_earnings", ascending=True)
 
     fig = px.bar(
         savings_df,
-        x="bank_name",
-        y="apy_pct",
+        x="annual_earnings",
+        y="bank_name",
+        orientation="h",
         color="bank_type",
         color_discrete_map={"online": "#2ecc71", "traditional": "#e74c3c"},
-        labels={"bank_name": "Bank", "apy_pct": "Savings APY (%)", "bank_type": "Type"},
-        text=savings_df["apy_pct"].apply(lambda v: f"{v:.2f}%"),
-    )
-    fig.add_hline(
-        y=current_fed_rate,
-        line_dash="dash",
-        line_color="black",
-        line_width=2,
-        annotation_text=f"Fed Funds Rate ({current_fed_rate:.2f}%)",
-        annotation_position="top right",
+        labels={"annual_earnings": "Annual Earnings on $10,000", "bank_name": "Bank", "bank_type": "Type"},
+        text=savings_df["annual_earnings"].apply(lambda v: f"${v:,.0f}/yr"),
     )
     fig.update_traces(textposition="outside")
-    fig.update_layout(height=460, showlegend=True, yaxis_range=[0, current_fed_rate + 1])
+    fig.update_layout(
+        height=max(420, len(savings_df) * 28),
+        showlegend=True,
+        xaxis_tickprefix="$",
+        xaxis_title="Annual Earnings on $10,000 Deposit",
+    )
     st.plotly_chart(fig, use_container_width=True)
 
-    online_avg = savings_df[savings_df["bank_type"] == "online"]["apy_pct"].mean()
-    trad_avg   = savings_df[savings_df["bank_type"] == "traditional"]["apy_pct"].mean()
-    col_a, col_b = st.columns(2)
-    col_a.success(
-        f"Online banks average {online_avg:.2f}% APY. "
-        "They raised rates when the Fed did and kept them competitive."
-    )
-    col_b.error(
-        f"Traditional banks average {trad_avg:.2f}% APY. "
-        "Despite the Fed raising rates significantly, they barely moved deposit rates."
+    best = savings_df.iloc[-1]
+    worst = savings_df[savings_df["bank_type"] == "traditional"].iloc[0]
+    gap = best["annual_earnings"] - worst["annual_earnings"]
+    st.info(
+        f"Keeping $10,000 at {worst['bank_name']} instead of {best['bank_name']} costs you "
+        f"${gap:,.0f} every single year. On $100,000 that is ${gap*10:,.0f} lost annually."
     )
 
 
